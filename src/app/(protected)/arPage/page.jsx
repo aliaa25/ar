@@ -610,17 +610,22 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-  <a-camera 
+<a-camera 
   position="0 1.6 4" 
   scale="2.5 2.5 2.5"
-  look-controls="pointerLockEnabled: false; touchEnabled: true; mouseEnabled: true; reverseTouchDrag: false; enabled: true"
-  wasd-controls="acceleration: 50"
+  look-controls="pointerLockEnabled: false; touchEnabled: true; mouseEnabled: true"
+  wasd-controls="enabled: false"
 >
   <a-cursor
     raycaster="objects: .clickable-item, .clickable-floor; showLine: true"
-    // position={`${cursorPosition.x} ${cursorPosition.y} ${cursorPosition.z}`}
-  />
+    fuse="true"
+    fuse-timeout="1000"
+    color="#FF0000"
+  ></a-cursor>
 </a-camera>
+
+
+
 
 
 
