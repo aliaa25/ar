@@ -9,8 +9,8 @@ import {
   Ruler, 
   QrCode,
   X,
-  ChevronDown,
-  ChevronUp
+  Settings,
+  Wrench
 } from 'lucide-react';
 
 import usePostArFile from "@/hooks/usePostArFile";
@@ -32,7 +32,7 @@ const MobileResponsiveControlMenu = ({
   setShowMenu
 }) => {
   const [isMobile, setIsMobile] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showMobileControlMenu, setShowMobileControlMenu] = useState(false);
 
   // hook لاستدعاء API لجلب ملف AR
   const { mutate: getArFile, isLoading: isLoadingAR } = usePostArFile();
@@ -48,6 +48,20 @@ const MobileResponsiveControlMenu = ({
 
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showMobileControlMenu && !event.target.closest('.mobile-control-menu')) {
+        setShowMobileControlMenu(false);
+      }
+    };
+
+    if (isMobile && showMobileControlMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isMobile, showMobileControlMenu]);
 
   const handleViewInAR = () => {
     if (!selectedItem) {
@@ -72,23 +86,32 @@ const MobileResponsiveControlMenu = ({
   const handleClose = () => {
     setShowMenu(false);
     setMenuPosition(null);
+    setShowMobileControlMenu(false);
   };
 
   if (!selectedModelId) return null;
 
-  const buttonBaseClass = `
-    flex items-center justify-center gap-2 px-3 py-2 rounded-lg font-medium 
-    transition-all duration-200 shadow-sm border text-sm
-    ${isMobile ? 'min-h-[40px] text-xs' : 'min-h-[36px] text-sm'}
+  const buttonClass = `
+    w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg font-medium 
+    transition-all duration-200 hover:bg-gray-50 border border-gray-200
+    text-sm text-gray-700 shadow-sm
   `;
 
-  const primaryButtonClass = `${buttonBaseClass} bg-mainbackground text-white border-mainbackground hover:bg-opacity-90`;
-  const secondaryButtonClass = `${buttonBaseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-50`;
-  const dangerButtonClass = `${buttonBaseClass} bg-red-500 text-white border-red-500 hover:bg-red-600`;
+  const primaryButtonClass = `
+    w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg font-medium 
+    transition-all duration-200 hover:bg-opacity-90 
+    text-sm bg-mainbackground text-white shadow-sm
+  `;
+
+  const dangerButtonClass = `
+    w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg font-medium 
+    transition-all duration-200 hover:bg-red-600 
+    text-sm bg-red-500 text-white shadow-sm
+  `;
 
   return (
     <>
-      {/* Desktop Menu */}
+      {/* Desktop Menu - الشكل الأصلي */}
       {!isMobile && (
         <div className="control-menu-container bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[300px] z-50">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
@@ -108,120 +131,149 @@ const MobileResponsiveControlMenu = ({
           </div>
 
           <div className="control-menu-grid grid grid-cols-2 gap-2">
-            <button onClick={() => onRotate('left')} className={secondaryButtonClass}>
+            <button onClick={() => onRotate('left')} className={buttonClass}>
               <RotateCcw size={16} />
               <span>Left</span>
             </button>
-            <button onClick={() => onRotate('right')} className={secondaryButtonClass}>
+            <button onClick={() => onRotate('right')} className={buttonClass}>
               <RotateCw size={16} />
               <span>Right</span>
             </button>
-            <button onClick={() => onScale('increase')} className={secondaryButtonClass}>
+            <button onClick={() => onScale('increase')} className={buttonClass}>
               <ZoomIn size={16} />
               <span>Zoom In</span>
             </button>
-            <button onClick={() => onScale('decrease')} className={secondaryButtonClass}>
+            <button onClick={() => onScale('decrease')} className={buttonClass}>
               <ZoomOut size={16} />
               <span>Zoom Out</span>
             </button>
-            <button onClick={onDuplicate} className={secondaryButtonClass}>
+            <button onClick={onDuplicate} className={buttonClass}>
               <Copy size={16} />
               <span>Duplicate</span>
             </button>
-            <button onClick={handleShowDimensions} className={primaryButtonClass}>
+            <button onClick={handleShowDimensions} className={primaryButtonClass.replace('w-full', '')}>
               <Ruler size={16} />
               <span>Dimensions</span>
             </button>
           </div>
 
-          <button onClick={handleViewInAR} className={primaryButtonClass + " w-full mt-3"}>
+          <button onClick={handleViewInAR} className={primaryButtonClass + " mt-3"}>
             <QrCode size={16} />
             <span>View in AR</span>
           </button>
 
-          <button onClick={onDelete} className={dangerButtonClass + " w-full mt-2"}>
+          <button onClick={onDelete} className={dangerButtonClass + " mt-2"}>
             <Trash2 size={16} />
             <span>Delete</span>
           </button>
         </div>
       )}
 
-      {/* Mobile Menu */}
+      {/* Mobile Control Menu Toggle Button - في الجانب الأيسر */}
       {isMobile && (
-        <div
-          className="control-menu-container bg-white rounded-t-2xl shadow-lg border border-gray-200 max-w-full z-50 fixed bottom-0 left-0 right-0"
-          style={{ maxHeight: isCollapsed ? '48px' : 'auto', overflow: 'hidden' }}
-        >
-          <div
-            className="w-full flex items-center justify-between p-3 border-b border-gray-100 cursor-pointer"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            aria-expanded={!isCollapsed}
-            aria-controls="mobile-control-menu-content"
+        <div className="fixed left-4 bottom-4 z-50">
+          <button
+            onClick={() => setShowMobileControlMenu(true)}
+            className="bg-mainbackground hover:bg-opacity-90 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center touch-manipulation"
+            style={{ 
+              width: '56px', 
+              height: '56px',
+              minWidth: '56px', 
+              minHeight: '56px'
+            }}
+            aria-label="Control Tools"
           >
-            <div className="flex items-center gap-2">
-              <h3 className="control-menu-title text-sm font-semibold text-gray-800">
-                Control Tools
-              </h3>
-              {isCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
+            <Settings size={24} strokeWidth={2} />
+          </button>
+        </div>
+      )}
 
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-              aria-label="Close Menu"
-            >
-              <X size={16} className="text-gray-500" />
+      {/* Mobile Control Menu Overlay - sliding from left */}
+      {isMobile && showMobileControlMenu && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowMobileControlMenu(false)}
+          />
+          
+          {/* Menu Panel */}
+          <div className="fixed inset-0 z-50 flex items-center justify-start pointer-events-none">
+            <div className="mobile-control-menu h-full w-80 max-w-[85vw] bg-white overflow-hidden animate-slide-left flex flex-col pointer-events-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center gap-2">
+                  <Wrench size={20} className="text-mainbackground" />
+                  <h3 className="text-lg font-semibold text-gray-800">Control Tools</h3>
+                </div>
+                <button
+                  onClick={() => setShowMobileControlMenu(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Close Menu"
+                >
+                  <X size={20} className="text-gray-600" />
+                </button>
+              </div>
+              
+              {/* Control Menu Content - الأزرار تحت بعض */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Transform</h4>
+                  
+                  <button onClick={() => onRotate('left')} className={buttonClass}>
+                    <RotateCcw size={20} />
+                    <span>Rotate Left</span>
+                  </button>
+                  
+                  <button onClick={() => onRotate('right')} className={buttonClass}>
+                    <RotateCw size={20} />
+                    <span>Rotate Right</span>
+                  </button>
+                  
+                  <button onClick={() => onScale('increase')} className={buttonClass}>
+                    <ZoomIn size={20} />
+                    <span>Zoom In</span>
+                  </button>
+                  
+                  <button onClick={() => onScale('decrease')} className={buttonClass}>
+                    <ZoomOut size={20} />
+                    <span>Zoom Out</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3 space-y-2">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Actions</h4>
+                  
+                  <button onClick={onDuplicate} className={buttonClass}>
+                    <Copy size={20} />
+                    <span>Duplicate</span>
+                  </button>
+                  
+                  <button onClick={handleShowDimensions} className={primaryButtonClass}>
+                    <Ruler size={20} />
+                    <span>Show Dimensions</span>
+                  </button>
+                  
+                  <button 
+                    onClick={handleViewInAR} 
+                    className={primaryButtonClass}
+                    disabled={isLoadingAR}
+                  >
+                    <QrCode size={20} />
+                    <span>{isLoadingAR ? 'Loading...' : 'View in AR'}</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-200 pt-3">
+                  <button onClick={onDelete} className={dangerButtonClass}>
+                    <Trash2 size={20} />
+                    <span>Delete Item</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {!isCollapsed && (
-            <div
-              id="mobile-control-menu-content"
-              className="p-3 overflow-y-auto max-h-[calc(100vh-60px)]"
-            >
-              <div className="control-menu-grid grid grid-cols-2 gap-2 mb-3">
-                <button onClick={() => onRotate('left')} className={secondaryButtonClass}>
-                  <RotateCcw size={14} />
-                  <span>Left</span>
-                </button>
-                <button onClick={() => onRotate('right')} className={secondaryButtonClass}>
-                  <RotateCw size={14} />
-                  <span>Right</span>
-                </button>
-                <button onClick={() => onScale('increase')} className={secondaryButtonClass}>
-                  <ZoomIn size={14} />
-                  <span>Zoom In</span>
-                </button>
-                <button onClick={() => onScale('decrease')} className={secondaryButtonClass}>
-                  <ZoomOut size={14} />
-                  <span>Zoom Out</span>
-                </button>
-                <button onClick={onDuplicate} className={secondaryButtonClass}>
-                  <Copy size={14} />
-                  <span>Duplicate</span>
-                </button>
-                <button onClick={handleShowDimensions} className={primaryButtonClass}>
-                  <Ruler size={14} />
-                  <span>Dimensions</span>
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                <button onClick={handleViewInAR} className={primaryButtonClass + " w-full"}>
-                  <QrCode size={14} />
-                  <span>View In AR</span>
-                </button>
-                <button onClick={onDelete} className={dangerButtonClass + " w-full"}>
-                  <Trash2 size={14} />
-                  <span>Delete</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        </>
       )}
 
       {/* Dimensions Popup */}
@@ -243,6 +295,37 @@ const MobileResponsiveControlMenu = ({
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes slide-left {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        
+        .animate-slide-left {
+          animation: slide-left 0.3s ease-out;
+        }
+
+        /* تأكد من ظهور الزر على جميع الأجهزة */
+        @media (max-width: 768px) {
+          .fixed {
+            position: fixed !important;
+          }
+        }
+
+        /* إضافة تحسينات للـ touch */
+        .touch-manipulation {
+          touch-action: manipulation;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
+        }
+      `}</style>
     </>
   );
 };
