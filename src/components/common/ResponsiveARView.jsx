@@ -20,6 +20,7 @@ const ResponsiveARView = ({
       setShowFooter(true); // رجع الفوتر لما تخرج من الكمبوننت
     };
   }, [setShowFooter]);
+  
   // Check if device is mobile
   useEffect(() => {
     const checkIsMobile = () => {
@@ -89,41 +90,59 @@ const ResponsiveARView = ({
         </div>
       </div>
 
-      {/* Mobile Furniture Menu Toggle Button - positioned at bottom right */}
-      <div className="absolute right-4 bottom-6 z-30">
+      {/* Mobile Furniture Menu Toggle Button - محسن ومضمون الظهور */}
+      <div className="fixed right-4 bottom-4 z-50">
         <button
           onClick={() => setShowMobileFurnitureMenu(true)}
-          className="bg-mainbackground hover:bg-opacity-90 text-white p-4 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center"
-          style={{ minWidth: '60px', minHeight: '60px' }}
+          className="bg-mainbackground hover:bg-opacity-90 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center touch-manipulation"
+          style={{ 
+            width: '64px', 
+            height: '64px',
+            minWidth: '64px', 
+            minHeight: '64px',
+            fontSize: '24px',
+            WebkitTapHighlightColor: 'transparent'
+          }}
+          aria-label="Add Furniture"
         >
-          <Plus size={24} />
+          <Plus size={28} strokeWidth={2} />
         </button>
       </div>
 
       {/* Mobile Furniture Menu Overlay - sliding from right */}
       {showMobileFurnitureMenu && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-end">
-          <div className="mobile-furniture-menu h-full w-80 max-w-[85vw] bg-white overflow-hidden animate-slide-right flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-              <div className="flex items-center gap-2">
-                <Menu size={20} className="text-mainbackground" />
-                <h3 className="text-lg font-semibold text-gray-800">Add Furniture</h3>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowMobileFurnitureMenu(false)}
+          />
+          
+          {/* Menu Panel */}
+          <div className="fixed inset-0 z-50 flex items-center justify-end pointer-events-none">
+            <div className="mobile-furniture-menu h-full w-80 max-w-[85vw] bg-white overflow-hidden animate-slide-right flex flex-col pointer-events-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center gap-2">
+                  <Menu size={20} className="text-mainbackground" />
+                  <h3 className="text-lg font-semibold text-gray-800">Add Furniture</h3>
+                </div>
+                <button
+                  onClick={() => setShowMobileFurnitureMenu(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Close Menu"
+                >
+                  <X size={20} className="text-gray-600" />
+                </button>
               </div>
-              <button
-                onClick={() => setShowMobileFurnitureMenu(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X size={20} className="text-gray-600" />
-              </button>
-            </div>
-            
-            {/* Furniture Menu Content */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {furnitureMenu}
+              
+              {/* Furniture Menu Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {furnitureMenu}
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       <style jsx>{`
@@ -170,6 +189,22 @@ const ResponsiveARView = ({
             font-size: 14px;
             padding: 8px 12px;
           }
+        }
+
+        /* تأكد من ظهور الزر على جميع الأجهزة */
+        @media (max-width: 768px) {
+          .fixed {
+            position: fixed !important;
+          }
+        }
+
+        /* إضافة تحسينات للـ touch */
+        .touch-manipulation {
+          touch-action: manipulation;
+          -webkit-user-select: none;
+          -moz-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
         }
       `}</style>
     </div>

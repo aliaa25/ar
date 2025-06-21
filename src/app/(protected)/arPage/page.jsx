@@ -33,6 +33,18 @@ export default function page() {
   const { mutate } = usePostArFile()
   const [showMeasurementTool, setShowMeasurementTool] = useState(false);
 
+const [isMobile, setIsMobile] = useState(false);
+
+useEffect(() => {
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
+
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+
+  return () => window.removeEventListener("resize", checkMobile);
+}, []);
 
 const handleTouchStart = (e) => {
   draggingRef.current = true;
@@ -610,24 +622,37 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-<a-camera 
-  position="0 1.6 4" 
-  scale="2.5 2.5 2.5"
-  look-controls="pointerLockEnabled: false; touchEnabled: true; mouseEnabled: true"
-  wasd-controls="enabled: false"
->
-  <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor; showLine: true"
-    fuse="true"
-    fuse-timeout="1000"
-    color="#FF0000"
-  ></a-cursor>
-</a-camera>
-
-
-
-
-
+{isMobile ? (
+  // موبايل
+  <a-camera
+    position="0 1.6 4"
+    scale="2.5 2.5 2.5"
+    look-controls="touchEnabled: true; mouseEnabled: false; reverseTouchDrag: false; sensitivity: 0.3"
+    wasd-controls="enabled: false"
+  >
+    <a-cursor
+      raycaster="objects: .clickable-item, .clickable-floor; showLine: true"
+      fuse="true"
+      fuse-timeout="1000"
+      color="#FF0000"
+    />
+  </a-camera>
+) : (
+  // لابتوب
+  <a-camera
+    position="0 1.6 4"
+    scale="2.5 2.5 2.5"
+    look-controls="touchEnabled: false; mouseEnabled: true; reverseTouchDrag: false; sensitivity: 0.3"
+    wasd-controls="enabled: false"
+  >
+    <a-cursor
+      raycaster="objects: .clickable-item, .clickable-floor; showLine: true"
+      fuse="true"
+      fuse-timeout="1000"
+      color="#FF0000"
+    />
+  </a-camera>
+)}
 
       </a-scene>
     ) : (
