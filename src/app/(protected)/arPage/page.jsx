@@ -612,14 +612,13 @@ return (
         ))}
 <a-camera
   position="0 1.6 4"
-  scale="2.5 2.5 2.5"
-  look-controls="touchEnabled: false; mouseEnabled: true; reverseTouchDrag: false; sensitivity: 0.3"
+  scale="4.5 4.5 4.5"
+  look-controls="touchEnabled: false; mouseEnabled: true; reverseTouchDrag: false;"
   wasd-controls="enabled: false"
 >
   <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor; showLine: true"
+    raycaster="objects: .clickable-item, .clickable-floor;"
     fuse="true"
-    fuse-timeout="1000"
     color="#FF0000"
   />
 </a-camera>
