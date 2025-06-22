@@ -612,19 +612,17 @@ return (
         ))}
 <a-camera
   position="0 1.6 4"
-  scale="4.5 4.5 4.5"
-  look-controls="mouseEnabled: true; reverseTouchDrag: false;"
-  wasd-controls="enabled: false"
+  scale="2 2 2"
+  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
+  wasd-controls="enabled: true"
 >
-  {/* Show cursor only on desktop */}
   <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor;"
-    fuse="true"
+    raycaster="objects: .clickable-item, .clickable-floor"
     color="#FF0000"
-    visible="false"
-    className="desktop-only-cursor"
-  />
+    fuse="false"
+  ></a-cursor>
 </a-camera>
+
 
 
       </a-scene>
