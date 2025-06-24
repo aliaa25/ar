@@ -610,7 +610,7 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-<a-camera
+{/* <a-camera
   position="0 1.6 4"
   scale="2 2 2"
   look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
@@ -621,9 +621,15 @@ return (
     color="#FF0000"
     fuse="false"
   ></a-cursor>
+</a-camera> */}
+
+<a-camera
+  look-controls="enabled: true; touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
+  wasd-controls="enabled: false"
+  position="0 1.6 4"
+>
+  <a-cursor></a-cursor>
 </a-camera>
-
-
 
       </a-scene>
     ) : (
@@ -639,3 +645,4 @@ return (
 );
 
 }
+

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
+    "@react-three/drei": "^10.3.0",
     "@tanstack/react-query": "^5.74.4",
     "aframe": "^1.6.0",
     "aframe-event-set-component": "^5.1.0",
