@@ -624,11 +624,15 @@ return (
 </a-camera> */}
 
 <a-camera
-  look-controls="enabled: true; touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
-  wasd-controls="enabled: false"
   position="0 1.6 4"
+  wasd-controls="enabled: true; acceleration: 15"
+  look-controls="enabled: true; touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
 >
-  <a-cursor></a-cursor>
+  <a-cursor
+    raycaster="objects: .clickable-item, .clickable-floor"
+    fuse="false"
+    color="#FF0000"
+  ></a-cursor>
 </a-camera>
 
       </a-scene>
