@@ -7,6 +7,7 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
+import 'aframe-extras';
 import  { useState, useEffect, useRef } from "react";
 
 export default function page() {
@@ -610,30 +611,18 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-{/* <a-camera
-  position="0 1.6 4"
-  scale="2 2 2"
-  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
-  wasd-controls="enabled: true"
->
-  <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor"
-    color="#FF0000"
-    fuse="false"
-  ></a-cursor>
-</a-camera> */}
 
-<a-camera
-  position="0 1.6 4"
-  wasd-controls="enabled: true; acceleration: 15"
-  look-controls="enabled: true; touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
->
-  <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor"
-    fuse="false"
-    color="#FF0000"
-  ></a-cursor>
-</a-camera>
+<a-entity id="rig" movement-controls="fly: false" position="0 1.6 4">
+  <a-camera
+    look-controls="touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
+  >
+    <a-cursor
+      raycaster="objects: .clickable-item, .clickable-floor"
+      fuse="false"
+      color="#FF0000"
+    ></a-cursor>
+  </a-camera>
+</a-entity>
 
       </a-scene>
     ) : (
@@ -650,3 +639,15 @@ return (
 
 }
 
+{/* <a-camera
+  position="0 1.6 4"
+  scale="2 2 2"
+  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
+  wasd-controls="enabled: true"
+>
+  <a-cursor
+    raycaster="objects: .clickable-item, .clickable-floor"
+    color="#FF0000"
+    fuse="false"
+  ></a-cursor>
+</a-camera> */}
