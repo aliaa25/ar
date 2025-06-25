@@ -7,8 +7,8 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
-import 'aframe';         
-import 'aframe-extras';  
+
+
 import  { useState, useEffect, useRef } from "react";
 
 export default function page() {
@@ -612,17 +612,7 @@ return (
           />
         ))}
 
-<a-entity id="rig" movement-controls="fly: false" position="0 1.6 4">
-  <a-camera
-    look-controls="touchEnabled: true; magicWindowTrackingEnabled: false; mouseEnabled: false"
-  >
-    <a-cursor
-      raycaster="objects: .clickable-item, .clickable-floor"
-      fuse="false"
-      color="#FF0000"
-    ></a-cursor>
-  </a-camera>
-</a-entity>
+
 
       </a-scene>
     ) : (
