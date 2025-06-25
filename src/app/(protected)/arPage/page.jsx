@@ -38,7 +38,13 @@ const draggingRef = useRef(false);
 const lastTouchRef = useRef({ x: 0, y: 0 });
 
 const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
+const [isMobile, setIsMobile] = useState(false);
 
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
+  }
+}, []);
   useEffect(() => {
     if (typeof window !== 'undefined' && window.AFRAME &&
     !AFRAME.components['custom-touch-look-controls']) {
@@ -296,133 +302,193 @@ const handleTouchEnd = () => {
 
   if (typeof AFRAME !== "undefined") {
     if (!AFRAME.components["drag-drop"]) {
-      AFRAME.registerComponent("drag-drop", {
-        schema: {},
-        init: function () {
-          this.dragging = false;
-          this.offset = new AFRAME.THREE.Vector3();
-          this.cameraEl = null;
-          // Save original scale of the object.
-          this.originalScale = {
-            x: this.el.object3D.scale.x,
-            y: this.el.object3D.scale.y,
-            z: this.el.object3D.scale.z,
-          };
-          // Set initial bottom offset.
-          this.initialBottomOffset = 0;
-          // Bind event handlers.
-          this.onMouseDown = this.onMouseDown.bind(this);
-          this.onMouseMove = this.onMouseMove.bind(this);
-          this.onMouseUp = this.onMouseUp.bind(this);
-          this.el.addEventListener("mousedown", this.onMouseDown);
-        },
-        onMouseDown: function (evt) {
-          evt.stopPropagation();
-          evt.preventDefault();
-          this.dragging = true;
-          // Update scale.
-          this.originalScale = {
-            x: this.el.object3D.scale.x,
-            y: this.el.object3D.scale.y,
-            z: this.el.object3D.scale.z,
-          };
-          // Pause camera controls.
-          this.cameraEl = this.el.sceneEl.querySelector("[camera]");
-          if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-            this.cameraEl.components["look-controls"].pause();
-          }
-          // Calculate offset.
-          if (evt.detail && evt.detail.intersection) {
-            this.offset.copy(this.el.object3D.position).sub(evt.detail.intersection.point);
-            this.offset.y = 0;
-          } else {
-            this.offset.set(0, 0, 0);
-          }
-          // Calculate initial bottom offset based on object's bounding box.
-          const mesh = this.el.getObject3D("mesh");
-          if (mesh) {
-            const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-            this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
-          } else {
-            this.initialBottomOffset = 0;
-          }
-          window.addEventListener("mousemove", this.onMouseMove);
-          window.addEventListener("mouseup", this.onMouseUp);
-        },
-        onMouseMove: function (evt) {
-          if (!this.dragging) return;
-          evt.preventDefault();
-          const mouse = new AFRAME.THREE.Vector2();
-          mouse.x = (evt.clientX / window.innerWidth) * 2 - 1;
-          mouse.y = -(evt.clientY / window.innerHeight) * 2 + 1;
-          const camera = this.el.sceneEl.camera;
-          const raycaster = new AFRAME.THREE.Raycaster();
-          raycaster.setFromCamera(mouse, camera);
-          let intersectionPoint = null;
-          // Try to intersect with the floor.
-          const floorEl = document.getElementById("floor");
-          if (floorEl) {
-            const intersects = raycaster.intersectObject(floorEl.object3D, true);
-            if (intersects.length > 0) {
-              intersectionPoint = intersects[0].point;
-            }
-          }
-          // If no floor, use a horizontal plane at y=0.
-          if (!intersectionPoint) {
-            const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
-            intersectionPoint = new AFRAME.THREE.Vector3();
-            if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) {
-              return;
-            }
-          }
-          const targetPos = intersectionPoint.clone().add(this.offset);
-          // Apply room boundaries if defined.
-          if (window.roomBounds) {
-            const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-            const halfWidth = (box.max.x - box.min.x) / 2;
-            const halfDepth = (box.max.z - box.min.z) / 2;
-            const wallThickness = 0.5;
-            const backMargin = 0.2;
-            targetPos.x = Math.min(
-              Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
-              window.roomBounds.maxX - halfWidth
-            );
-            targetPos.z = Math.min(
-              Math.max(
-                targetPos.z,
-                window.roomBounds.minZ + wallThickness + halfDepth + backMargin
-              ),
-              window.roomBounds.maxZ - halfDepth
-            );
-          } else {
-            const safeBoundary = 3.5;
-            targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
-            targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
-          }
-          // Maintain the original y position.
-          targetPos.y = this.el.object3D.position.y;
-          this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
-          // Reset scale.
-          this.el.object3D.scale.set(
-            this.originalScale.x,
-            this.originalScale.y,
-            this.originalScale.z
-          );
-        },
-        onMouseUp: function (evt) {
-          this.dragging = false;
-          window.removeEventListener("mousemove", this.onMouseMove);
-          window.removeEventListener("mouseup", this.onMouseUp);
-          if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-            this.cameraEl.components["look-controls"].play();
-          }
-        },
-        remove: function () {
-          this.el.removeEventListener("mousedown", this.onMouseDown);
-          window.removeEventListener("mousemove", this.onMouseMove);
-          window.removeEventListener("mouseup", this.onMouseUp);
-        },
-      });
+    AFRAME.registerComponent("drag-drop", {
+  schema: {},
+  init: function () {
+    this.dragging = false;
+    this.offset = new AFRAME.THREE.Vector3();
+    this.cameraEl = null;
+
+    // حفظ مقياس العنصر الأصلي
+    this.originalScale = {
+      x: this.el.object3D.scale.x,
+      y: this.el.object3D.scale.y,
+      z: this.el.object3D.scale.z,
+    };
+
+    // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
+    this.initialBottomOffset = 0;
+
+    // ربط الدوال عشان نستخدمها كـ event handlers
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
+
+    // إضافة أحداث الماوس واللمس
+    this.el.addEventListener("mousedown", this.onMouseDown);
+    this.el.addEventListener("touchstart", this.onTouchStart);
+  },
+
+  // بداية سحب بالماوس
+  onMouseDown: function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    this.startDrag(evt.detail ? evt.detail.intersection : null);
+    window.addEventListener("mousemove", this.onMouseMove);
+    window.addEventListener("mouseup", this.onMouseUp);
+  },
+
+  // بداية سحب باللمس
+  onTouchStart: function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    // في اللمس ممكن يكون evt.touches[0]
+    this.startDrag(evt.detail ? evt.detail.intersection : null);
+    window.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    window.addEventListener("touchend", this.onTouchEnd);
+  },
+
+  // توحيد بداية السحب (للمس والماوس)
+  startDrag: function (intersection) {
+    this.dragging = true;
+    this.originalScale = {
+      x: this.el.object3D.scale.x,
+      y: this.el.object3D.scale.y,
+      z: this.el.object3D.scale.z,
+    };
+    this.cameraEl = this.el.sceneEl.querySelector("[camera]");
+    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+      this.cameraEl.components["look-controls"].pause();
+    }
+    if (intersection) {
+      this.offset.copy(this.el.object3D.position).sub(intersection.point);
+      this.offset.y = 0;
+    } else {
+      this.offset.set(0, 0, 0);
+    }
+    const mesh = this.el.getObject3D("mesh");
+    if (mesh) {
+      const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+      this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
+    } else {
+      this.initialBottomOffset = 0;
+    }
+  },
+
+  // تحريك بالماوس
+  onMouseMove: function (evt) {
+    if (!this.dragging) return;
+    evt.preventDefault();
+    this.handleDragMove(evt.clientX, evt.clientY);
+  },
+
+  // تحريك باللمس
+  onTouchMove: function (evt) {
+    if (!this.dragging) return;
+    evt.preventDefault();
+    // نستخدم أول لمسة
+    const touch = evt.touches[0];
+    this.handleDragMove(touch.clientX, touch.clientY);
+  },
+
+  // التعامل مع الحركة موحدة
+  handleDragMove: function (clientX, clientY) {
+    const mouse = new AFRAME.THREE.Vector2();
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+
+    const camera = this.el.sceneEl.camera;
+    const raycaster = new AFRAME.THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    let intersectionPoint = null;
+    const floorEl = document.getElementById("floor");
+    if (floorEl) {
+      const intersects = raycaster.intersectObject(floorEl.object3D, true);
+      if (intersects.length > 0) {
+        intersectionPoint = intersects[0].point;
+      }
+    }
+    if (!intersectionPoint) {
+      const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
+      intersectionPoint = new AFRAME.THREE.Vector3();
+      if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
+    }
+
+    const targetPos = intersectionPoint.clone().add(this.offset);
+
+    // تطبيق حدود الغرفة (لو موجودة)
+    if (window.roomBounds) {
+      const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+      const halfWidth = (box.max.x - box.min.x) / 2;
+      const halfDepth = (box.max.z - box.min.z) / 2;
+      const wallThickness = 0.5;
+      const backMargin = 0.2;
+
+      targetPos.x = Math.min(
+        Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
+        window.roomBounds.maxX - halfWidth
+      );
+      targetPos.z = Math.min(
+        Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
+        window.roomBounds.maxZ - halfDepth
+      );
+    } else {
+      // حدود أمان افتراضية
+      const safeBoundary = 3.5;
+      targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
+      targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
+    }
+
+    // ثبّت الارتفاع y (عشان العنصر على الأرض)
+    targetPos.y = this.el.object3D.position.y;
+
+    this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
+
+    // ارجع مقياس العنصر الأصلي
+    this.el.object3D.scale.set(
+      this.originalScale.x,
+      this.originalScale.y,
+      this.originalScale.z
+    );
+  },
+
+  // نهاية سحب الماوس
+  onMouseUp: function (evt) {
+    this.endDrag();
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("mouseup", this.onMouseUp);
+  },
+
+  // نهاية سحب اللمس
+  onTouchEnd: function (evt) {
+    this.endDrag();
+    window.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("touchend", this.onTouchEnd);
+  },
+
+  // توحيد نهاية السحب
+  endDrag: function () {
+    this.dragging = false;
+    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+      this.cameraEl.components["look-controls"].play();
+    }
+  },
+
+  // تنظيف الحدث
+  remove: function () {
+    this.el.removeEventListener("mousedown", this.onMouseDown);
+    this.el.removeEventListener("touchstart", this.onTouchStart);
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("mouseup", this.onMouseUp);
+    window.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("touchend", this.onTouchEnd);
+  },
+});
+
     }
 
     // Updated bounding-box-helper using THREE.Box3Helper
@@ -643,8 +709,9 @@ return (
   height="10"
   opacity="0"
   material="transparent: true"
-  className="clickable-floor"
-/> }
+  class="clickable-floor"
+></a-plane>
+}
 
         {models.map((model) => (
           <a-entity
@@ -670,21 +737,44 @@ return (
   joystick-controls="mode: joystick; joySticky: true"
   position="0 1.6 4"
 >
-  <a-camera
-    position="0 0 0"
-    custom-touch-look-controls
-    look-controls="enabled: false"
-    wasd-controls="enabled: false"
-  >
-    <a-cursor
-      rayOrigin="mouse"
-      raycaster="objects: .clickable-item, .clickable-floor"
-      fuse="false"
-      material="color: red"
-    ></a-cursor>
-  </a-camera>
-</a-entity>
+  {isMobile ? (
 
+   <a-camera
+  position="0 0 0"
+  custom-touch-look-controls
+  look-controls="enabled: false"
+  wasd-controls="enabled: false"
+>
+  <a-cursor
+    rayOrigin="entity"
+    raycaster="objects: .clickable-item, .clickable-floor"
+    fuse="false"
+    material="color: red"
+    position="0 0 -1.5"
+    scale="10 10 10"
+  ></a-cursor>
+</a-camera>
+
+  ) : (
+    
+    <a-camera
+  position="0 0 0"
+  scale="2 2 2"
+  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
+  wasd-controls="enabled: true"
+>
+  <a-cursor
+    rayOrigin="entity"
+    raycaster="objects: .clickable-item, .clickable-floor"
+    color="color: red"
+    fuse="false"
+    position="0 0 -1.5"
+     scale="2 2 2"
+  ></a-cursor>
+</a-camera>
+
+  )}
+</a-entity>
 
 
       </a-scene>
@@ -702,15 +792,4 @@ return (
 
 }
 
-{/* <a-camera
-  position="0 1.6 4"
-  scale="2 2 2"
-  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
-  wasd-controls="enabled: true"
->
-  <a-cursor
-    raycaster="objects: .clickable-item, .clickable-floor"
-    color="#FF0000"
-    fuse="false"
-  ></a-cursor>
-</a-camera> */}
+
