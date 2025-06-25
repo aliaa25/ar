@@ -611,6 +611,21 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
+<a-entity id="rig" movement-controls position="0 1.6 1">
+  <a-camera
+    position="0 0 0"
+    scale="2 2 2"
+    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: false; mouseEnabled: true; sensitivity: 0.1"
+    wasd-controls="enabled: true"
+  >
+    <a-cursor
+      rayOrigin="mouse"
+      raycaster="objects: .clickable-item, .clickable-floor"
+      fuse="false"
+      material="color: red"
+    ></a-cursor>
+  </a-camera>
+</a-entity>
 
 
 
