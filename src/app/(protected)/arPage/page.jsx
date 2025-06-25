@@ -7,6 +7,7 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
+import './custom.css';
 import Script from 'next/script';
 
 import  { useState, useEffect, useRef } from "react";
@@ -724,9 +725,9 @@ return (
             id={model.id}
             className="clickable-item"
             onClick={(evt) => handleModelClick(evt, model)}
-            onTouchStart={handleTouchStart}
-    onTouchMove={handleTouchMove}
-    onTouchEnd={handleTouchEnd}
+            // onTouchStart={handleTouchStart}
+            // onTouchMove={handleTouchMove}
+            // onTouchEnd={handleTouchEnd}
           />
         ))}
 <Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" />
@@ -751,7 +752,7 @@ return (
     fuse="false"
     material="color: red"
     position="0 0 -1.5"
-    scale="10 10 10"
+    scale="2 2 2"
   ></a-cursor>
 </a-camera>
 
@@ -766,7 +767,7 @@ return (
   <a-cursor
     rayOrigin="entity"
     raycaster="objects: .clickable-item, .clickable-floor"
-    color="color: red"
+    material="color: red"
     fuse="false"
     position="0 0 -1.5"
      scale="2 2 2"
