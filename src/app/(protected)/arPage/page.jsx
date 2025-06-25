@@ -7,7 +7,8 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
-import 'aframe-extras/dist/aframe-extras.controls.js';
+import 'aframe';         
+import 'aframe-extras';  
 import  { useState, useEffect, useRef } from "react";
 
 export default function page() {
