@@ -11,7 +11,7 @@ import Script from 'next/script';
 
 import  { useState, useEffect, useRef } from "react";
 
-export default function page() {
+export default function Page() {
   useRoomBound();
   const [models, setModels] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null)
@@ -34,6 +34,57 @@ export default function page() {
   const { data, isLoading, error } = useGetProducts()
   const { mutate } = usePostArFile()
   const [showMeasurementTool, setShowMeasurementTool] = useState(false);
+const draggingRef = useRef(false);
+const lastTouchRef = useRef({ x: 0, y: 0 });
+
+const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.AFRAME &&
+    !AFRAME.components['custom-touch-look-controls']) {
+      AFRAME.registerComponent('custom-touch-look-controls', {
+        schema: { enabled: { default: true } },
+        init: function () {
+          this.touchStart = null;
+          this.rotation = { x: 0, y: 0 };
+          this.handleTouchStart = this.handleTouchStart.bind(this);
+          this.handleTouchMove = this.handleTouchMove.bind(this);
+          this.handleTouchEnd = this.handleTouchEnd.bind(this);
+        },
+        play: function () {
+          this.el.sceneEl.canvas.addEventListener('touchstart', this.handleTouchStart);
+          this.el.sceneEl.canvas.addEventListener('touchmove', this.handleTouchMove);
+          this.el.sceneEl.canvas.addEventListener('touchend', this.handleTouchEnd);
+        },
+        pause: function () {
+          this.el.sceneEl.canvas.removeEventListener('touchstart', this.handleTouchStart);
+          this.el.sceneEl.canvas.removeEventListener('touchmove', this.handleTouchMove);
+          this.el.sceneEl.canvas.removeEventListener('touchend', this.handleTouchEnd);
+        },
+        handleTouchStart: function (e) {
+          if (e.touches.length === 1) {
+            this.touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }
+        },
+        handleTouchMove: function (e) {
+          if (!this.touchStart || e.touches.length !== 1) return;
+          const touch = e.touches[0];
+          const deltaX = touch.clientX - this.touchStart.x;
+          const deltaY = touch.clientY - this.touchStart.y;
+          this.rotation.y -= deltaX * 0.002;
+          this.rotation.x -= deltaY * 0.002;
+          this.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.rotation.x));
+          this.el.object3D.rotation.set(this.rotation.x, this.rotation.y, 0);
+          this.touchStart = { x: touch.clientX, y: touch.clientY };
+        },
+        handleTouchEnd: function () {
+          this.touchStart = null;
+        }
+      });
+    }
+  }, []);
+
+ 
 
 const handleTouchStart = (e) => {
   draggingRef.current = true;
@@ -611,32 +662,23 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-        <Script
+        {/* <Script
   src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"
   strategy="afterInteractive"
 />
 <Script
   src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js"
   strategy="afterInteractive"
-/>
-<a-entity
-  id="rig"
-  movement-controls="fly: true"
-  joystick-controls="mode: joystick; joySticky: true"
-  wasd-controls="acceleration: 50"
-  position="0 1.6 0"
->
+/> */}
+<a-entity id="rig" position="0 1.6 0">
   <a-camera
     position="0 0 0"
-    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: true; mouseEnabled: true; sensitivity: 0.01">
-    <a-cursor
-      rayOrigin="mouse"
-      raycaster="objects: .clickable-item, .clickable-floor"
-      fuse="false"
-      material="color: red"
-    ></a-cursor>
-  </a-camera>
+    custom-touch-look-controls
+    wasd-controls="enabled: false"
+    look-controls="enabled: false"
+  ></a-camera>
 </a-entity>
+
 
 
       </a-scene>
