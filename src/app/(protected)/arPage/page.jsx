@@ -668,7 +668,7 @@ return (
   id="rig"
   movement-controls="enabled: true; fly: false"
   joystick-controls="mode: joystick; joySticky: true"
-  position="0 1.6 0"
+  position="0 1.6 4"
 >
   <a-camera
     position="0 0 0"
