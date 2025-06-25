@@ -584,7 +584,7 @@ return (
       <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
         {/* المشهد والموديلات */}
         <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
-        <a-plane
+        {/* <a-plane
   id="floor"
   position="0 0 0"
   rotation="-90 0 0"
@@ -593,7 +593,7 @@ return (
   opacity="0"
   material="transparent: true"
   className="clickable-floor"
-/>
+/> */}
 
         {models.map((model) => (
           <a-entity
@@ -620,7 +620,7 @@ return (
   strategy="afterInteractive"
 />
 
-<a-entity  id="rig"
+{/* <a-entity  id="rig"
   movement-controls="constrainToNavMesh: false"
   joystick-controls
   position="0 1.6 1">
@@ -637,8 +637,27 @@ return (
       material="color: red"
     ></a-cursor>
   </a-camera>
-</a-entity>
+</a-entity> */}
 
+<a-entity
+  id="rig"
+  position="0 1.6 1"
+  movement-controls="fly: true"
+  joystick-controls
+>
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; mouseEnabled: true"
+    wasd-controls-enabled="false"
+  >
+    <a-cursor
+      rayOrigin="mouse"
+      raycaster="objects: .clickable-item, .clickable-floor"
+      fuse="false"
+      material="color: red"
+    ></a-cursor>
+  </a-camera>
+</a-entity>
 
 
       </a-scene>
