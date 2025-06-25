@@ -7,7 +7,7 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
-
+import Script from 'next/script';
 
 import  { useState, useEffect, useRef } from "react";
 
@@ -611,7 +611,19 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-<a-entity id="rig" movement-controls position="0 1.6 1">
+        <Script
+  src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"
+  strategy="afterInteractive"
+/>
+<Script
+  src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js"
+  strategy="afterInteractive"
+/>
+
+<a-entity  id="rig"
+  movement-controls="constrainToNavMesh: false"
+  joystick-controls
+  position="0 1.6 1">
   <a-camera
     position="0 0 0"
     scale="2 2 2"
