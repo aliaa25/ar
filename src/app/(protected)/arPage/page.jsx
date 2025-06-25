@@ -301,230 +301,307 @@ const handleTouchEnd = () => {
     };
   }, []);
 
-  if (typeof AFRAME !== "undefined") {
-    if (!AFRAME.components["drag-drop"]) {
-    AFRAME.registerComponent("drag-drop", {
-  schema: {},
-  init: function () {
-    this.dragging = false;
-    this.offset = new AFRAME.THREE.Vector3();
-    this.cameraEl = null;
+//   if (typeof AFRAME !== "undefined") {
+//     if (!AFRAME.components["drag-drop"]) {
+//     AFRAME.registerComponent("drag-drop", {
+//   schema: {},
+//   init: function () {
+//     this.dragging = false;
+//     this.offset = new AFRAME.THREE.Vector3();
+//     this.cameraEl = null;
 
-    // حفظ مقياس العنصر الأصلي
-    this.originalScale = {
-      x: this.el.object3D.scale.x,
-      y: this.el.object3D.scale.y,
-      z: this.el.object3D.scale.z,
-    };
+//     // حفظ مقياس العنصر الأصلي
+//     this.originalScale = {
+//       x: this.el.object3D.scale.x,
+//       y: this.el.object3D.scale.y,
+//       z: this.el.object3D.scale.z,
+//     };
 
-    // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
-    this.initialBottomOffset = 0;
+//     // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
+//     this.initialBottomOffset = 0;
 
-    // ربط الدوال عشان نستخدمها كـ event handlers
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
+//     // ربط الدوال عشان نستخدمها كـ event handlers
+//     this.onMouseDown = this.onMouseDown.bind(this);
+//     this.onMouseMove = this.onMouseMove.bind(this);
+//     this.onMouseUp = this.onMouseUp.bind(this);
+//     this.onTouchStart = this.onTouchStart.bind(this);
+//     this.onTouchMove = this.onTouchMove.bind(this);
+//     this.onTouchEnd = this.onTouchEnd.bind(this);
 
-    // إضافة أحداث الماوس واللمس
-    this.el.addEventListener("mousedown", this.onMouseDown);
-    this.el.addEventListener("touchstart", this.onTouchStart);
-  },
+//     // إضافة أحداث الماوس واللمس
+//     this.el.addEventListener("mousedown", this.onMouseDown);
+//     this.el.addEventListener("touchstart", this.onTouchStart);
+//   },
 
-  // بداية سحب بالماوس
-  onMouseDown: function (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    this.startDrag(evt.detail ? evt.detail.intersection : null);
-    window.addEventListener("mousemove", this.onMouseMove);
-    window.addEventListener("mouseup", this.onMouseUp);
-  },
+//   // بداية سحب بالماوس
+//   onMouseDown: function (evt) {
+//     evt.stopPropagation();
+//     evt.preventDefault();
+//     this.startDrag(evt.detail ? evt.detail.intersection : null);
+//     window.addEventListener("mousemove", this.onMouseMove);
+//     window.addEventListener("mouseup", this.onMouseUp);
+//   },
 
-  // بداية سحب باللمس
-  onTouchStart: function (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    // في اللمس ممكن يكون evt.touches[0]
-    this.startDrag(evt.detail ? evt.detail.intersection : null);
-    window.addEventListener("touchmove", this.onTouchMove, { passive: false });
-    window.addEventListener("touchend", this.onTouchEnd);
-  },
+//   // بداية سحب باللمس
+//   onTouchStart: function (evt) {
+//     evt.stopPropagation();
+//     evt.preventDefault();
+//     // في اللمس ممكن يكون evt.touches[0]
+//     this.startDrag(evt.detail ? evt.detail.intersection : null);
+//     window.addEventListener("touchmove", this.onTouchMove, { passive: false });
+//     window.addEventListener("touchend", this.onTouchEnd);
+//   },
 
-  // توحيد بداية السحب (للمس والماوس)
-  startDrag: function (intersection) {
-    this.dragging = true;
-    this.originalScale = {
-      x: this.el.object3D.scale.x,
-      y: this.el.object3D.scale.y,
-      z: this.el.object3D.scale.z,
-    };
-    this.cameraEl = this.el.sceneEl.querySelector("[camera]");
-    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-      this.cameraEl.components["look-controls"].pause();
-    }
-    if (intersection) {
-      this.offset.copy(this.el.object3D.position).sub(intersection.point);
-      this.offset.y = 0;
-    } else {
-      this.offset.set(0, 0, 0);
-    }
-    const mesh = this.el.getObject3D("mesh");
-    if (mesh) {
-      const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-      this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
-    } else {
-      this.initialBottomOffset = 0;
-    }
-  },
+//   // توحيد بداية السحب (للمس والماوس)
+//   startDrag: function (intersection) {
+//     this.dragging = true;
+//     this.originalScale = {
+//       x: this.el.object3D.scale.x,
+//       y: this.el.object3D.scale.y,
+//       z: this.el.object3D.scale.z,
+//     };
+//     this.cameraEl = this.el.sceneEl.querySelector("[camera]");
+//     if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+//       this.cameraEl.components["look-controls"].pause();
+//     }
+//     if (intersection) {
+//       this.offset.copy(this.el.object3D.position).sub(intersection.point);
+//       this.offset.y = 0;
+//     } else {
+//       this.offset.set(0, 0, 0);
+//     }
+//     const mesh = this.el.getObject3D("mesh");
+//     if (mesh) {
+//       const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+//       this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
+//     } else {
+//       this.initialBottomOffset = 0;
+//     }
+//   },
 
-  // تحريك بالماوس
-  onMouseMove: function (evt) {
-    if (!this.dragging) return;
-    evt.preventDefault();
-    this.handleDragMove(evt.clientX, evt.clientY);
-  },
+//   // تحريك بالماوس
+//   onMouseMove: function (evt) {
+//     if (!this.dragging) return;
+//     evt.preventDefault();
+//     this.handleDragMove(evt.clientX, evt.clientY);
+//   },
 
-  // تحريك باللمس
-  onTouchMove: function (evt) {
-    if (!this.dragging) return;
-    evt.preventDefault();
-    // نستخدم أول لمسة
-    const touch = evt.touches[0];
-    this.handleDragMove(touch.clientX, touch.clientY);
-  },
+//   // تحريك باللمس
+//   onTouchMove: function (evt) {
+//     if (!this.dragging) return;
+//     evt.preventDefault();
+//     // نستخدم أول لمسة
+//     const touch = evt.touches[0];
+//     this.handleDragMove(touch.clientX, touch.clientY);
+//   },
 
-  // التعامل مع الحركة موحدة
-  handleDragMove: function (clientX, clientY) {
-    const mouse = new AFRAME.THREE.Vector2();
-    mouse.x = (clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+//   // التعامل مع الحركة موحدة
+//   handleDragMove: function (clientX, clientY) {
+//     const mouse = new AFRAME.THREE.Vector2();
+//     mouse.x = (clientX / window.innerWidth) * 2 - 1;
+//     mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
-    const camera = this.el.sceneEl.camera;
-    const raycaster = new AFRAME.THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
+//     const camera = this.el.sceneEl.camera;
+//     const raycaster = new AFRAME.THREE.Raycaster();
+//     raycaster.setFromCamera(mouse, camera);
 
-    let intersectionPoint = null;
-    const floorEl = document.getElementById("floor");
-    if (floorEl) {
-      const intersects = raycaster.intersectObject(floorEl.object3D, true);
+//     let intersectionPoint = null;
+//     const floorEl = document.getElementById("floor");
+//     if (floorEl) {
+//       const intersects = raycaster.intersectObject(floorEl.object3D, true);
+//       if (intersects.length > 0) {
+//         intersectionPoint = intersects[0].point;
+//       }
+//     }
+//     if (!intersectionPoint) {
+//       const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
+//       intersectionPoint = new AFRAME.THREE.Vector3();
+//       if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
+//     }
+
+//     const targetPos = intersectionPoint.clone().add(this.offset);
+
+//     // تطبيق حدود الغرفة (لو موجودة)
+//     if (window.roomBounds) {
+//       const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+//       const halfWidth = (box.max.x - box.min.x) / 2;
+//       const halfDepth = (box.max.z - box.min.z) / 2;
+//       const wallThickness = 0.5;
+//       const backMargin = 0.2;
+
+//       targetPos.x = Math.min(
+//         Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
+//         window.roomBounds.maxX - halfWidth
+//       );
+//       targetPos.z = Math.min(
+//         Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
+//         window.roomBounds.maxZ - halfDepth
+//       );
+//     } else {
+//       // حدود أمان افتراضية
+//       const safeBoundary = 3.5;
+//       targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
+//       targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
+//     }
+
+//     // ثبّت الارتفاع y (عشان العنصر على الأرض)
+//     targetPos.y = this.el.object3D.position.y;
+
+//     this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
+
+//     // ارجع مقياس العنصر الأصلي
+//     this.el.object3D.scale.set(
+//       this.originalScale.x,
+//       this.originalScale.y,
+//       this.originalScale.z
+//     );
+//   },
+
+//   // نهاية سحب الماوس
+//   onMouseUp: function (evt) {
+//     this.endDrag();
+//     window.removeEventListener("mousemove", this.onMouseMove);
+//     window.removeEventListener("mouseup", this.onMouseUp);
+//   },
+
+//   // نهاية سحب اللمس
+//   onTouchEnd: function (evt) {
+//     this.endDrag();
+//     window.removeEventListener("touchmove", this.onTouchMove);
+//     window.removeEventListener("touchend", this.onTouchEnd);
+//   },
+
+//   // توحيد نهاية السحب
+//   endDrag: function () {
+//     this.dragging = false;
+//     if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+//       this.cameraEl.components["look-controls"].play();
+//     }
+//   },
+
+//   // تنظيف الحدث
+//   remove: function () {
+//     this.el.removeEventListener("mousedown", this.onMouseDown);
+//     this.el.removeEventListener("touchstart", this.onTouchStart);
+//     window.removeEventListener("mousemove", this.onMouseMove);
+//     window.removeEventListener("mouseup", this.onMouseUp);
+//     window.removeEventListener("touchmove", this.onTouchMove);
+//     window.removeEventListener("touchend", this.onTouchEnd);
+//   },
+// });
+
+//     }
+
+//     // Updated bounding-box-helper using THREE.Box3Helper
+//     if (!AFRAME.components["bounding-box-helper"]) {
+//       AFRAME.registerComponent("bounding-box-helper", {
+//         schema: {
+//           // Default color set to bastel green.
+//           color: { type: "color", default: "#4CAF50" },
+//         },
+//         init: function () {
+//           // Create a Box3 to compute the object's bounding box.
+//           this.box = new THREE.Box3();
+//           // Create a Box3Helper that visualizes the computed box.
+//           this.helper = new THREE.Box3Helper(this.box, this.data.color);
+//           this.el.sceneEl.object3D.add(this.helper);
+//         },
+//         tick: function () {
+//           if (this.helper) {
+//             // Ensure the object's world matrices are up-to-date.
+//             this.el.object3D.updateMatrixWorld(true);
+//             // Recompute the bounding box.
+//             this.box.setFromObject(this.el.object3D);
+//             // Display helper as long as the box is not empty.
+//             this.helper.visible = !this.box.isEmpty();
+//           }
+//         },
+//         remove: function () {
+//           if (this.helper) {
+//             this.el.sceneEl.object3D.remove(this.helper);
+//             this.helper = null;
+//           }
+//         },
+//       });
+//     }
+//   }
+
+if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
+  AFRAME.registerComponent("drag-drop", {
+    init: function () {
+      this.dragging = false;
+      this.offset = new AFRAME.THREE.Vector3();
+      this.raycaster = new AFRAME.THREE.Raycaster();
+      this.mouse = new AFRAME.THREE.Vector2();
+      this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
+      this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
+
+      // Bind handlers
+      this.onPointerDown = this.onPointerDown.bind(this);
+      this.onPointerMove = this.onPointerMove.bind(this);
+      this.onPointerUp = this.onPointerUp.bind(this);
+
+      this.el.addEventListener("pointerdown", this.onPointerDown);
+      window.addEventListener("pointermove", this.onPointerMove);
+      window.addEventListener("pointerup", this.onPointerUp);
+    },
+
+    onPointerDown: function (evt) {
+      evt.preventDefault();
+      // Raycast من نقطة اللمس/الفأرة
+      const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+      const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+
+      this.mouse.set(x, y);
+      this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+
+      // تحقق تقاطع مع هذا العنصر
+      const intersects = this.raycaster.intersectObject(this.el.object3D, true);
       if (intersects.length > 0) {
-        intersectionPoint = intersects[0].point;
+        this.dragging = true;
+        // حساب إزاحة النقطة الملموسة من مركز العنصر
+        this.intersectionPoint = intersects[0].point;
+        this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
       }
-    }
-    if (!intersectionPoint) {
-      const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
-      intersectionPoint = new AFRAME.THREE.Vector3();
-      if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
-    }
+    },
 
-    const targetPos = intersectionPoint.clone().add(this.offset);
+    onPointerMove: function (evt) {
+      if (!this.dragging) return;
+      evt.preventDefault();
 
-    // تطبيق حدود الغرفة (لو موجودة)
-    if (window.roomBounds) {
-      const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-      const halfWidth = (box.max.x - box.min.x) / 2;
-      const halfDepth = (box.max.z - box.min.z) / 2;
-      const wallThickness = 0.5;
-      const backMargin = 0.2;
+      const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+      const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
 
-      targetPos.x = Math.min(
-        Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
-        window.roomBounds.maxX - halfWidth
-      );
-      targetPos.z = Math.min(
-        Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
-        window.roomBounds.maxZ - halfDepth
-      );
-    } else {
-      // حدود أمان افتراضية
-      const safeBoundary = 3.5;
-      targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
-      targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
-    }
+      this.mouse.set(x, y);
+      this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
 
-    // ثبّت الارتفاع y (عشان العنصر على الأرض)
-    targetPos.y = this.el.object3D.position.y;
+      // نقطع المستوى الأرضي (XZ plane)
+      const intersection = new AFRAME.THREE.Vector3();
+      if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
+        const newPos = intersection.clone().add(this.offset);
+        // تثبيت ارتفاع Y
+        newPos.y = this.el.object3D.position.y;
+        this.el.object3D.position.copy(newPos);
+      }
+    },
 
-    this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
+    onPointerUp: function (evt) {
+      if (this.dragging) {
+        evt.preventDefault();
+        this.dragging = false;
+      }
+    },
 
-    // ارجع مقياس العنصر الأصلي
-    this.el.object3D.scale.set(
-      this.originalScale.x,
-      this.originalScale.y,
-      this.originalScale.z
-    );
-  },
+    remove: function () {
+      this.el.removeEventListener("pointerdown", this.onPointerDown);
+      window.removeEventListener("pointermove", this.onPointerMove);
+      window.removeEventListener("pointerup", this.onPointerUp);
+    },
+  });
+}
 
-  // نهاية سحب الماوس
-  onMouseUp: function (evt) {
-    this.endDrag();
-    window.removeEventListener("mousemove", this.onMouseMove);
-    window.removeEventListener("mouseup", this.onMouseUp);
-  },
-
-  // نهاية سحب اللمس
-  onTouchEnd: function (evt) {
-    this.endDrag();
-    window.removeEventListener("touchmove", this.onTouchMove);
-    window.removeEventListener("touchend", this.onTouchEnd);
-  },
-
-  // توحيد نهاية السحب
-  endDrag: function () {
-    this.dragging = false;
-    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-      this.cameraEl.components["look-controls"].play();
-    }
-  },
-
-  // تنظيف الحدث
-  remove: function () {
-    this.el.removeEventListener("mousedown", this.onMouseDown);
-    this.el.removeEventListener("touchstart", this.onTouchStart);
-    window.removeEventListener("mousemove", this.onMouseMove);
-    window.removeEventListener("mouseup", this.onMouseUp);
-    window.removeEventListener("touchmove", this.onTouchMove);
-    window.removeEventListener("touchend", this.onTouchEnd);
-  },
-});
-
-    }
-
-    // Updated bounding-box-helper using THREE.Box3Helper
-    if (!AFRAME.components["bounding-box-helper"]) {
-      AFRAME.registerComponent("bounding-box-helper", {
-        schema: {
-          // Default color set to bastel green.
-          color: { type: "color", default: "#4CAF50" },
-        },
-        init: function () {
-          // Create a Box3 to compute the object's bounding box.
-          this.box = new THREE.Box3();
-          // Create a Box3Helper that visualizes the computed box.
-          this.helper = new THREE.Box3Helper(this.box, this.data.color);
-          this.el.sceneEl.object3D.add(this.helper);
-        },
-        tick: function () {
-          if (this.helper) {
-            // Ensure the object's world matrices are up-to-date.
-            this.el.object3D.updateMatrixWorld(true);
-            // Recompute the bounding box.
-            this.box.setFromObject(this.el.object3D);
-            // Display helper as long as the box is not empty.
-            this.helper.visible = !this.box.isEmpty();
-          }
-        },
-        remove: function () {
-          if (this.helper) {
-            this.el.sceneEl.object3D.remove(this.helper);
-            this.helper = null;
-          }
-        },
-      });
-    }
-  }
 
   const handleModelClick = (evt, model) => {
     evt.stopPropagation();
