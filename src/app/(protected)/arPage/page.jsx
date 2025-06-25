@@ -619,26 +619,6 @@ return (
   src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js"
   strategy="afterInteractive"
 />
-
-{/* <a-entity  id="rig"
-  movement-controls="constrainToNavMesh: false"
-  joystick-controls
-  position="0 1.6 1">
-  <a-camera
-    position="0 0 0"
-    scale="2 2 2"
-    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: false; mouseEnabled: true; sensitivity: 0.1"
-    wasd-controls="enabled: true"
-  >
-    <a-cursor
-      rayOrigin="mouse"
-      raycaster="objects: .clickable-item, .clickable-floor"
-      fuse="false"
-      material="color: red"
-    ></a-cursor>
-  </a-camera>
-</a-entity> */}
-
 <a-entity
   id="rig"
   movement-controls="fly: true"
@@ -647,8 +627,7 @@ return (
 >
   <a-camera
     position="0 0 0"
-    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: false; mouseEnabled: true; sensitivity: 0.01"
-  >
+    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: true; mouseEnabled: true; sensitivity: 0.01">
     <a-cursor
       rayOrigin="mouse"
       raycaster="objects: .clickable-item, .clickable-floor"
