@@ -662,21 +662,27 @@ return (
     onTouchEnd={handleTouchEnd}
           />
         ))}
-        {/* <Script
-  src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"
-  strategy="afterInteractive"
-/>
-<Script
-  src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js"
-  strategy="afterInteractive"
-/> */}
-<a-entity id="rig" position="0 1.6 0">
+<Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" />
+
+<a-entity
+  id="rig"
+  movement-controls="enabled: true; fly: false"
+  joystick-controls="mode: joystick; joySticky: true"
+  position="0 1.6 0"
+>
   <a-camera
     position="0 0 0"
     custom-touch-look-controls
-    wasd-controls="enabled: false"
     look-controls="enabled: false"
-  ></a-camera>
+    wasd-controls="enabled: false"
+  >
+    <a-cursor
+      rayOrigin="mouse"
+      raycaster="objects: .clickable-item, .clickable-floor"
+      fuse="false"
+      material="color: red"
+    ></a-cursor>
+  </a-camera>
 </a-entity>
 
 
