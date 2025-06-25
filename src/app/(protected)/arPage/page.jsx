@@ -641,14 +641,13 @@ return (
 
 <a-entity
   id="rig"
-  position="0 1.6 1"
   movement-controls="fly: true"
   joystick-controls
+  position="0 1.6 0"
 >
   <a-camera
     position="0 0 0"
-    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; mouseEnabled: true"
-    wasd-controls-enabled="false"
+    look-controls="enabled: true; touchEnabled: true; reverseTouchDrag: false; magicWindowTrackingEnabled: false; mouseEnabled: true; sensitivity: 0.01"
   >
     <a-cursor
       rayOrigin="mouse"
