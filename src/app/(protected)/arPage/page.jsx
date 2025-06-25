@@ -584,7 +584,7 @@ return (
       <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
         {/* المشهد والموديلات */}
         <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
-        {/* <a-plane
+        { <a-plane
   id="floor"
   position="0 0 0"
   rotation="-90 0 0"
@@ -593,7 +593,7 @@ return (
   opacity="0"
   material="transparent: true"
   className="clickable-floor"
-/> */}
+/> }
 
         {models.map((model) => (
           <a-entity
@@ -622,7 +622,8 @@ return (
 <a-entity
   id="rig"
   movement-controls="fly: true"
-  joystick-controls
+  joystick-controls="mode: joystick; joySticky: true"
+  wasd-controls="acceleration: 50"
   position="0 1.6 0"
 >
   <a-camera
