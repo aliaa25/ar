@@ -1,16 +1,12 @@
-
 import  { useState, useEffect, useRef } from 'react';
 import { Ruler, X, RotateCcw } from 'lucide-react';
 import { AiOutlineClose } from "react-icons/ai"; // أيقونة X
-
 
 const MeasurementTool = ({ isVisible = true  , setShowMeasurementTool}) => {
   const [isActive, setIsActive] = useState(false);
   const [points, setPoints] = useState([]);
   const [measurements, setMeasurements] = useState([]);
   const measurementIdRef = useRef(0);
-  
-
   // Initialize A-Frame components
   useEffect(() => {
     if (typeof AFRAME !== "undefined") {
@@ -266,31 +262,29 @@ const MeasurementTool = ({ isVisible = true  , setShowMeasurementTool}) => {
   if (!isVisible) return null;
 
 return (
-  <div className="fixed top-20 right-20 z-20 bg-green-950/90 backdrop-blur-sm rounded-lg shadow-lg p-4 min-w-[280px] max-w-[320px]">
-    <div className="space-y-3">
+  <div className="fixed top-20 right-4 z-20 bg-green-950/60 backdrop-blur-sm rounded-lg shadow-lg p-3 min-w-[200px] max-w-[240px]">
+    <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-secondary">Distance Measurement</h3>
-
-        <div className="flex items-center gap-2">
+        <h3 className="font-medium text-secondary text-sm">Distance Measurement</h3>
+        <div className="flex items-center gap-1">
           {/* Clear Measurements Button */}
           {measurements.length > 0 && (
             <button
               onClick={clearAllMeasurements}
-              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-1 text-red-500 hover:bg-red-50 rounded transition-colors"
               title="Clear all measurements"
             >
-              <RotateCcw size={20} />
+              <RotateCcw size={14} />
             </button>
           )}
-
-          {/* Close (X) Button */}
+          {/* Close Button */}
           <button
             onClick={()=>setShowMeasurementTool(false)}
-            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            className="p-1 text-white hover:bg-white/10 rounded transition-colors"
             title="Close"
           >
-            <AiOutlineClose size={20} />
+            <AiOutlineClose size={14} />
           </button>
         </div>
       </div>
@@ -300,23 +294,23 @@ return (
         <button
           onClick={startDistanceMeasurement}
           disabled={isActive}
-          className={`w-full p-3 rounded-lg border-2 transition-all ${
+          className={`w-full p-2 rounded border-2 transition-all text-xs ${
             isActive
               ? 'bg-blue-100 border-blue-500 text-blue-700'
               : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
           } ${isActive ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          <Ruler className="mx-auto mb-1" size={20} />
-          <span className="text-sm block">Measure Distance</span>
+          <Ruler className="mx-auto mb-1" size={16} />
+          <span className="block">Measure Distance</span>
         </button>
       </div>
 
       {/* Active Measurement Status */}
       {isActive && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-yellow-800">
+              <p className="text-xs font-medium text-yellow-800">
                 {points.length === 0 ? 'Click to select first point' : 'Click to select second point'}
               </p>
             </div>
@@ -324,36 +318,13 @@ return (
               onClick={cancelMeasurement}
               className="p-1 text-red-500 hover:bg-red-50 rounded"
             >
-              <X size={16} />
+              <X size={12} />
             </button>
           </div>
         </div>
       )}
-
-      {/* Measurements List */}
-      {measurements.length > 0 && (
-        <div className="space-y-2 max-h-32 overflow-y-auto">
-          <h4 className="text-sm font-medium text-gray-700">Saved Measurements:</h4>
-          {measurements.map((measurement) => (
-            <div
-              key={measurement.id}
-              className="bg-gray-50 rounded-lg p-2 text-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">
-                  📏 Distance
-                </span>
-                <span className="font-bold text-gray-800">
-                  {measurement.value} {measurement.unit}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Instructions */}
-      <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2">
+     {/* Instructions */}
+      <div className="text-xs text-gray-500 bg-gray-50 rounded p-2">
         <p><strong>Distance Measurement:</strong> Click on two points to measure the distance between them</p>
       </div>
     </div>

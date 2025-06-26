@@ -106,64 +106,6 @@ const MobileResponsiveControlMenu = ({
 
   return (
     <>
-      {/* Desktop Menu */}
-      {!isMobile && (
-        <div className="control-menu-container bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[300px] z-50">
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
-            <h3 className="control-menu-title text-sm font-semibold text-gray-800">
-              Control Tools
-            </h3>
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handleClose();
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-              aria-label="Close Menu"
-            >
-              <X size={16} className="text-gray-500" />
-            </div>
-          </div>
-
-          <div className="control-menu-grid grid grid-cols-2 gap-2">
-            <button onClick={() => onRotate('left')} className={buttonClass}>
-              <RotateCcw size={16} />
-              <span>Rotate Left</span>
-            </button>
-            <button onClick={() => onRotate('right')} className={buttonClass}>
-              <RotateCw size={16} />
-              <span>Rotate Right</span>
-            </button>
-            <button onClick={() => onScale('increase')} className={buttonClass}>
-              <ZoomIn size={16} />
-              <span>Zoom In</span>
-            </button>
-            <button onClick={() => onScale('decrease')} className={buttonClass}>
-              <ZoomOut size={16} />
-              <span>Zoom Out</span>
-            </button>
-            <button onClick={onDuplicate} className={buttonClass}>
-              <Copy size={16} />
-              <span>Duplicate</span>
-            </button>
-            <button onClick={handleShowDimensions} className={primaryButtonClass.replace('w-full', '')}>
-              <Ruler size={16} />
-              <span>Show Dimensions</span>
-            </button>
-          </div>
-
-          <button onClick={handleViewInAR} className={primaryButtonClass + " mt-3"}>
-            <QrCode size={16} />
-            <span>View in AR</span>
-          </button>
-
-          <button onClick={onDelete} className={dangerButtonClass + " mt-2"}>
-            <Trash2 size={16} />
-            <span>Delete</span>
-          </button>
-        </div>
-      )}
-
       {/* Mobile Menu */}
       {isMobile && (
         <>
@@ -181,7 +123,7 @@ const MobileResponsiveControlMenu = ({
           {/* Sliding Menu */}
           <div className={`
             fixed left-0 top-1/2 transform -translate-y-1/2 z-50
-            bg-white bg-opacity-90 backdrop-blur-md rounded-r-2xl shadow-2xl border border-gray-200 border-opacity-30
+            bg-white/20 bg-opacity-90 backdrop-blur-md rounded-r-2xl shadow-2xl border border-gray-200 border-opacity-30
             transition-all duration-300 ease-out
             ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
           `}>
@@ -399,3 +341,6 @@ const MobileResponsiveControlMenu = ({
 };
 
 export default MobileResponsiveControlMenu;
+
+
+

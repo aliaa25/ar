@@ -7,6 +7,7 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
+import DimensionsDisplay from '@/components/common/DimensionsDisplay';
 import Script from 'next/script';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import  { useState, useEffect, useRef } from "react";
@@ -18,12 +19,6 @@ export default function Page() {
   const [qrCodeData, setQrCodeData] = useState(null);
   const [showQRPopup, setShowQRPopup] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [dimContainerPos, setDimContainerPos] = useState(null);
-  const [dimensionsText, setDimensionsText] = useState({
-    width: "",
-    height: "",
-    depth: "",
-  });
   const [modelSrc, setModelSrc] = useState(null);
   const [selectedModelId, setSelectedModelId] = useState(null);
   const [cursorPos, setCursorPos] = useState("0 1 0");
@@ -39,7 +34,7 @@ const lastTouchRef = useRef({ x: 0, y: 0 });
 
 const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
 const [isMobile, setIsMobile] = useState(false);
-
+  const [showDimensionsDisplay, setShowDimensionsDisplay] = useState(false);
  const wallThickness = 0.5;
   const floorThickness = 0.2;
   const ceilingThickness = 0.2;
@@ -154,11 +149,6 @@ const handleTouchMove = (e) => {
 
   e.preventDefault();
 };
-
-const handleTouchEnd = () => {
-  draggingRef.current = false;
-};
-
 
   const handleAddItem = (itemSrc) => {
     const model = {
@@ -288,55 +278,13 @@ const handleTouchEnd = () => {
       setModelId(modelId + 1);
     }
   };
+  // When the Dimensions button is clicked, activate the popup and add the bounding-box-helper.
+  const handleShowDimensions = (id) => {
+    setShowDimensionsDisplay(true);
+  };
 
-  function projectToScreen(vec, camera) {
-    const projected = vec.clone().project(camera);
-    const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-projected.y * 0.5 + 0.5) * window.innerHeight;
-    return { x, y };
-  }
-  
-
-  // Update dimension popup container to follow the model.
-  useEffect(() => {
-    let animId;
-    const updateDimPopupPosition = () => {
-      if (showDimensionPopup && selectedModelId) {
-        const modelEl = document.getElementById(selectedModelId);
-        const cameraEl = document.querySelector("a-camera");
-        const cameraObj = cameraEl && cameraEl.getObject3D("camera");
-        if (modelEl && cameraObj) {
-          // Compute the top-center of the model's bounding box.
-          const box = new THREE.Box3().setFromObject(modelEl.object3D);
-          const topCenter = new THREE.Vector3(
-            (box.min.x + box.max.x) / 2,
-            box.max.y,
-            (box.min.z + box.max.z) / 2
-          );
-          const proj = projectToScreen(topCenter, cameraObj);
-          // Position the container slightly above the top-center.
-          setDimContainerPos({ left: proj.x, top: proj.y - 40 });
-          // Update dimensions text using the mesh bounding box.
-          const mesh = modelEl.getObject3D("mesh");
-          if (mesh) {
-            const meshBox = new THREE.Box3().setFromObject(mesh);
-            const min = meshBox.min;
-            const max = meshBox.max;
-            setDimensionsText({
-              width: `Width: ${(max.x - min.x).toFixed(2)}`,
-              height: `Height: ${(max.y - min.y).toFixed(2)}`,
-              depth: `Length: ${(max.z - min.z).toFixed(2)}`,
-            });
-          }
-        }
-      }
-      animId = requestAnimationFrame(updateDimPopupPosition);
-    };
-    updateDimPopupPosition();
-    return () => cancelAnimationFrame(animId);
-  }, [showDimensionPopup, selectedModelId, models]);
-
-  const clearAllBoundingBoxes = () => {
+  const handleCloseDimensions = () => {
+    setShowDimensionsDisplay(false);
     models.forEach((model) => {
       const modelEl = document.getElementById(model.id);
       if (modelEl && modelEl.hasAttribute("bounding-box-helper")) {
@@ -344,18 +292,6 @@ const handleTouchEnd = () => {
       }
     });
   };
-
-  // When the Dimensions button is clicked, activate the popup and add the bounding-box-helper.
-  const handleShowDimensions = (id) => {
-    setShowDimensionPopup(true);
-    clearAllBoundingBoxes();
-    const modelEl = document.getElementById(id);
-    if (modelEl && !modelEl.hasAttribute("bounding-box-helper")) {
-      // Add the bounding box helper to the model.
-      modelEl.setAttribute("bounding-box-helper", "");
-    }
-  };
-
   const handleFloorClick = (evt) => {
     let point = null;
     if (evt.detail && evt.detail.intersection) {
@@ -802,58 +738,6 @@ return (
         setSelectedItem={setSelectedItem}
       />
     }
-    // controlMenu={
-    //   showMenu && selectedModelId && menuPosition && (
-    //     <>
-    //       {/* Desktop menu */}
-    //       <div className="hidden md:block absolute top-4 right-4 z-10">
-    //         <ControlMenu
-    //           dimensionsText={dimensionsText}
-    //           dimContainerPos={dimContainerPos}
-    //           showDimensionPopup={showDimensionPopup}
-    //           position={menuPosition}
-    //           onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-    //           onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-    //           onDuplicate={handleDuplicateItem}
-    //           onDelete={() => handleRemoveItem(selectedModelId)}
-    //           handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-    //           selectedModelId={selectedModelId}
-    //           selectedItem={selectedItem}
-    //           items={data}
-    //           mutate={mutate}
-    //           setMenuPosition={setMenuPosition}
-    //           setQrCodeData={setQrCodeData}
-    //           setShowQRPopup={setShowQRPopup}
-    //           setShowMenu={setShowMenu}
-    //         />
-    //       </div>
-
-    //       {/* Mobile menu */}
-    //       <div className="block md:hidden">
-    //         <MobileResponsiveControlMenu
-    //           dimensionsText={dimensionsText}
-    //           dimContainerPos={dimContainerPos}
-    //           showDimensionPopup={showDimensionPopup}
-    //           position={menuPosition}
-    //           onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-    //           onMove={(dir) => handleMoveItem (selectedModelId, dir)}
-    //           onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-    //           onDuplicate={handleDuplicateItem}
-    //           onDelete={() => handleRemoveItem(selectedModelId)}
-    //           handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-    //           selectedModelId={selectedModelId}
-    //           selectedItem={selectedItem}
-    //           items={data}
-    //           mutate={mutate}
-    //           setMenuPosition={setMenuPosition}
-    //           setQrCodeData={setQrCodeData}
-    //           setShowQRPopup={setShowQRPopup}
-    //           setShowMenu={setShowMenu}
-    //         />
-    //       </div>
-    //     </>
-    //   )
-    // }
     controlMenu={
   showMenu && selectedModelId && menuPosition && (
     <>
@@ -861,8 +745,6 @@ return (
       {(!isMobile) && (
         <div className="absolute top-4 right-4 z-10">
           <ControlMenu
-            dimensionsText={dimensionsText}
-            dimContainerPos={dimContainerPos}
             showDimensionPopup={showDimensionPopup}
             position={menuPosition}
             onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
@@ -886,8 +768,6 @@ return (
       {isMobile && (
         <div className="block md:hidden">
           <MobileResponsiveControlMenu
-            dimensionsText={dimensionsText}
-            dimContainerPos={dimContainerPos}
             showDimensionPopup={showDimensionPopup}
             position={menuPosition}
             onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
@@ -914,13 +794,13 @@ return (
     measurementButton={
       <button
         onClick={() => setShowMeasurementTool(!showMeasurementTool)}
-        className={`w-44 p-2 rounded-xl border text-sm font-medium shadow transition-all duration-300 ${
+        className={`w-10 p-2 rounded-xl border text-sm font-medium shadow transition-all duration-300 ${
           showMeasurementTool
             ? 'bg-mainbackground text-white border-mainbackground'
             : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
         }`}
       >
-        📏 Measurement Tool
+        📏 
       </button>
     }
   >
@@ -1015,6 +895,12 @@ return (
       isVisible={showMeasurementTool}
       setShowMeasurementTool={setShowMeasurementTool}
     />
+     <DimensionsDisplay
+        selectedModelId={selectedModelId}
+        models={models}
+        isVisible={showDimensionsDisplay}
+        onClose={handleCloseDimensions}
+      />
   </ResponsiveARView>
 );
 
