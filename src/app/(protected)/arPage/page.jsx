@@ -8,7 +8,7 @@ import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
 import Script from 'next/script';
-
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import  { useState, useEffect, useRef } from "react";
 
 export default function Page() {
@@ -39,6 +39,10 @@ const lastTouchRef = useRef({ x: 0, y: 0 });
 
 const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
 const [isMobile, setIsMobile] = useState(false);
+
+ const wallThickness = 0.5;
+  const floorThickness = 0.2;
+  const ceilingThickness = 0.2;
 
 useEffect(() => {
   if (typeof window !== 'undefined') {
@@ -89,7 +93,43 @@ useEffect(() => {
       });
     }
   }, []);
-
+// --- Compute room boundaries ---
+  async function getRoomDimensions() {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+      loader.load(
+        "/white-room1.glb",
+        function (gltf) {
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const width = box.max.x - box.min.x;
+          const depth = box.max.z - box.min.z;
+          const height = box.max.y - box.min.y;
+          const wallThickness = 0.5;
+          const floorThickness = 0.2;
+          const ceilingThickness = 0.2;
+          const internalWidth = width - 2 * wallThickness;
+          const internalDepth = depth - 2 * wallThickness;
+          resolve({
+            minX: box.min.x,
+            maxX: box.max.x,
+            minZ: box.min.z,
+            maxZ: box.max.z,
+            internalWidth,
+            internalDepth,
+            internalHeight: height - floorThickness - ceilingThickness,
+          });
+        },
+        (xhr) => {
+          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        },
+        (error) => {
+          console.error("An error happened:", error);
+          reject(error);
+        }
+      );
+    });
+  }
  
 
 const handleTouchStart = (e) => {
@@ -163,48 +203,62 @@ const handleTouchEnd = () => {
     });
     setModels(newModels);
   };
-const handleMoveItem = (id, direction) => {
-  const step = 0.5;
 
-  const newModels = models.map((model) => {
-    if (model.id === id) {
-      // تأكد من وجود position ونوعها string
-      const posStr = typeof model.position === 'string' ? model.position : "0 0 0";
-      const currentPosition = AFRAME.utils.coordinates.parse(posStr);
-      let newPosition = { ...currentPosition };
-
-      switch (direction) {
-        case "forward":
-          newPosition.z -= step;
-          break;
-        case "backward":
-          newPosition.z += step;
-          break;
-        case "left":
-          newPosition.x -= step;
-          break;
-        case "right":
-          newPosition.x += step;
-          break;
-        default:
-          break;
+  const handleMoveItem = async (id, direction) => {
+    try {
+      const modelEl = document.getElementById(id);
+      if (!modelEl || typeof modelEl.getObject3D !== "function") {
+        console.error(`Model with id ${id} not found or does not support getObject3D.`);
+        return;
       }
-
-      // ثبت y كما هو
-      newPosition.y = currentPosition.y;
-
-      return {
-        ...model,
-        position: AFRAME.utils.coordinates.stringify(newPosition),
-      };
+      const internalRoomBounds = await getRoomDimensions();
+      if (!internalRoomBounds) return;
+      if (!modelEl.dataset.initialY) {
+        modelEl.dataset.initialY = modelEl.object3D.position.y;
+      }
+      const newModels = models.map((model) => {
+        if (model.id === id) {
+          const currentPosition = model.position.split(" ").map(Number);
+          let newPosition = { x: currentPosition[0], y: currentPosition[1], z: currentPosition[2] };
+          switch (direction) {
+            case "forward":
+              newPosition.z -= 0.5;
+              break;
+            case "backward":
+              newPosition.z += 0.5;
+              break;
+            case "left":
+              newPosition.x -= 0.5;
+              break;
+            case "right":
+              newPosition.x += 0.5;
+              break;
+            default:
+              break;
+          }
+          const mesh = modelEl.getObject3D("mesh");
+          if (!mesh) return model;
+          const box = new THREE.Box3().setFromObject(mesh);
+          const halfWidth = (box.max.x - box.min.x) / 2;
+          const halfDepth = (box.max.z - box.min.z) / 2;
+          newPosition.x = Math.min(
+            Math.max(newPosition.x, internalRoomBounds.minX + halfWidth),
+            internalRoomBounds.maxX - halfWidth
+          );
+          newPosition.z = Math.min(
+            Math.max(newPosition.z, internalRoomBounds.minZ + wallThickness + halfDepth),
+            internalRoomBounds.maxZ - halfDepth
+          );
+          newPosition.y = parseFloat(modelEl.dataset.initialY);
+          return { ...model, position: `${newPosition.x} ${newPosition.y} ${newPosition.z}` };
+        }
+        return model;
+      });
+      setModels(newModels);
+    } catch (error) {
+      console.error("Error moving item:", error);
     }
-    return model;
-  });
-
-  setModels(newModels);
-};
-
-
+  };
   const handleScaleItem = (id, direction) => {
     const newModels = models.map((model) => {
       if (model.id === id) {
