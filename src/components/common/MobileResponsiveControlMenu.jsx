@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   RotateCcw, 
@@ -10,31 +11,35 @@ import {
   QrCode,
   X,
   Settings,
-  Wrench
+  Wrench,
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Menu
 } from 'lucide-react';
-
 import usePostArFile from "@/hooks/usePostArFile";
-
 const MobileResponsiveControlMenu = ({
-  dimensionsText,
+  dimensionsText = { width: "Width: 100cm", height: "Height: 50cm", depth: "Depth: 30cm" },
   dimContainerPos,
-  showDimensionPopup,
-  onRotate,
-  onScale,
-  onDuplicate,
-  onDelete,
-  handleShowDimensions,
-  selectedModelId,
-  selectedItem,
-  setMenuPosition,
-  setQrCodeData,
-  setShowQRPopup,
-  setShowMenu
+  showDimensionPopup = false,
+  onRotate = (direction) => console.log('Rotate:', direction),
+  onScale = (type) => console.log('Scale:', type),
+  onDuplicate = () => console.log('Duplicate'),
+  onDelete = () => console.log('Delete'),
+  onMove = (direction) => console.log('Move:', direction),
+  handleShowDimensions = () => console.log('Show dimensions'),
+  selectedModelId = "demo-model",
+  selectedItem = { name: "Demo Item" },
+  setMenuPosition = () => {},
+  setQrCodeData = () => {},
+  setShowQRPopup = () => {},
+  setShowMenu = () => {}
 }) => {
   const [isMobile, setIsMobile] = useState(false);
-  const [showMobileControlMenu, setShowMobileControlMenu] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // hook لاستدعاء API لجلب ملف AR
+  // hook to call API for fetching AR file
   const { mutate: getArFile, isLoading: isLoadingAR } = usePostArFile();
 
   useEffect(() => {
@@ -48,20 +53,6 @@ const MobileResponsiveControlMenu = ({
 
     return () => window.removeEventListener('resize', checkIsMobile);
   }, []);
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showMobileControlMenu && !event.target.closest('.mobile-control-menu')) {
-        setShowMobileControlMenu(false);
-      }
-    };
-
-    if (isMobile && showMobileControlMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isMobile, showMobileControlMenu]);
 
   const handleViewInAR = () => {
     if (!selectedItem) {
@@ -86,7 +77,11 @@ const MobileResponsiveControlMenu = ({
   const handleClose = () => {
     setShowMenu(false);
     setMenuPosition(null);
-    setShowMobileControlMenu(false);
+    setIsMenuOpen(false);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   if (!selectedModelId) return null;
@@ -100,7 +95,7 @@ const MobileResponsiveControlMenu = ({
   const primaryButtonClass = `
     w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg font-medium 
     transition-all duration-200 hover:bg-opacity-90 
-    text-sm bg-mainbackground text-white shadow-sm
+    text-sm bg-blue-600 text-white shadow-sm
   `;
 
   const dangerButtonClass = `
@@ -111,7 +106,7 @@ const MobileResponsiveControlMenu = ({
 
   return (
     <>
-      {/* Desktop Menu - الشكل الأصلي */}
+      {/* Desktop Menu */}
       {!isMobile && (
         <div className="control-menu-container bg-white rounded-xl shadow-lg border border-gray-200 p-4 min-w-[300px] z-50">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
@@ -133,11 +128,11 @@ const MobileResponsiveControlMenu = ({
           <div className="control-menu-grid grid grid-cols-2 gap-2">
             <button onClick={() => onRotate('left')} className={buttonClass}>
               <RotateCcw size={16} />
-              <span>Left</span>
+              <span>Rotate Left</span>
             </button>
             <button onClick={() => onRotate('right')} className={buttonClass}>
               <RotateCw size={16} />
-              <span>Right</span>
+              <span>Rotate Right</span>
             </button>
             <button onClick={() => onScale('increase')} className={buttonClass}>
               <ZoomIn size={16} />
@@ -153,7 +148,7 @@ const MobileResponsiveControlMenu = ({
             </button>
             <button onClick={handleShowDimensions} className={primaryButtonClass.replace('w-full', '')}>
               <Ruler size={16} />
-              <span>Dimensions</span>
+              <span>Show Dimensions</span>
             </button>
           </div>
 
@@ -169,108 +164,151 @@ const MobileResponsiveControlMenu = ({
         </div>
       )}
 
-      {/* Mobile Control Menu Toggle Button - في الجانب الأيسر */}
+      {/* Mobile Menu */}
       {isMobile && (
-        <div className="fixed left-4 bottom-4 z-50">
-          <button
-            onClick={() => setShowMobileControlMenu(true)}
-            className="bg-mainbackground hover:bg-opacity-90 text-white rounded-full shadow-lg transition-all duration-300 flex items-center justify-center touch-manipulation"
-            style={{ 
-              width: '56px', 
-              height: '56px',
-              minWidth: '56px', 
-              minHeight: '56px'
-            }}
-            aria-label="Control Tools"
-          >
-            <Settings size={24} strokeWidth={2} />
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Control Menu Overlay - sliding from left */}
-      {isMobile && showMobileControlMenu && (
         <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setShowMobileControlMenu(false)}
-          />
-          
-          {/* Menu Panel */}
-          <div className="fixed inset-0 z-50 flex items-center justify-start pointer-events-none">
-            <div className="mobile-control-menu h-full w-80 max-w-[85vw] bg-white overflow-hidden animate-slide-left flex flex-col pointer-events-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                <div className="flex items-center gap-2">
-                  <Wrench size={20} className="text-mainbackground" />
-                  <h3 className="text-lg font-semibold text-gray-800">Control Tools</h3>
-                </div>
-                <button
-                  onClick={() => setShowMobileControlMenu(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Close Menu"
+          {/* Mobile Menu Toggle Button */}
+          <div className="fixed left-3 top-1/2 transform -translate-y-1/2 z-50">
+            <button
+              onClick={toggleMobileMenu}
+              className="bg-white shadow-lg border border-gray-200 p-2 rounded-full hover:shadow-xl transition-all duration-300 hover:scale-105"
+              aria-label="Toggle Menu"
+            >
+              <Menu size={20} className="text-gray-700" />
+            </button>
+          </div>
+
+          {/* Sliding Menu */}
+          <div className={`
+            fixed left-0 top-1/2 transform -translate-y-1/2 z-50
+            bg-white bg-opacity-90 backdrop-blur-md rounded-r-2xl shadow-2xl border border-gray-200 border-opacity-30
+            transition-all duration-300 ease-out
+            ${isMenuOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'}
+          `}>
+            {/* Menu Header */}
+            <div className="flex items-center justify-between p-3 border-b border-gray-100 border-opacity-30 bg-gradient-to-r from-blue-50 from-opacity-40 to-purple-50 to-opacity-40 rounded-tr-2xl">
+              <h3 className="text-xs font-semibold text-gray-800">Tools</h3>
+              <button
+                onClick={handleClose}
+                className="p-1 hover:bg-white rounded-full transition-colors"
+                aria-label="Close Menu"
+              >
+                <X size={14} className="text-gray-500" />
+              </button>
+            </div>
+
+            {/* Menu Content */}
+            <div className="p-2 space-y-1 min-w-[140px]">
+              {/* Quick Actions Row */}
+              <div className="grid grid-cols-2 gap-1 mb-2">
+                <button 
+                  onClick={() => onRotate('left')}
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Rotate Left"
                 >
-                  <X size={20} className="text-gray-600" />
+                  <RotateCcw size={16} className="text-gray-600 mb-1" />
+                  <span className="text-xs text-gray-600">Rotate L</span>
+                </button>
+                <button 
+                  onClick={() => onRotate('right')}
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Rotate Right"
+                >
+                  <RotateCw size={16} className="text-gray-600 mb-1" />
+                  <span className="text-xs text-gray-600">Rotate R</span>
                 </button>
               </div>
-              
-              {/* Control Menu Content - الأزرار تحت بعض */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Transform</h4>
-                  
-                  <button onClick={() => onRotate('left')} className={buttonClass}>
-                    <RotateCcw size={20} />
-                    <span>Rotate Left</span>
-                  </button>
-                  
-                  <button onClick={() => onRotate('right')} className={buttonClass}>
-                    <RotateCw size={20} />
-                    <span>Rotate Right</span>
-                  </button>
-                  
-                  <button onClick={() => onScale('increase')} className={buttonClass}>
-                    <ZoomIn size={20} />
-                    <span>Zoom In</span>
-                  </button>
-                  
-                  <button onClick={() => onScale('decrease')} className={buttonClass}>
-                    <ZoomOut size={20} />
-                    <span>Zoom Out</span>
-                  </button>
-                </div>
 
-                <div className="border-t border-gray-200 pt-3 space-y-2">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Actions</h4>
-                  
-                  <button onClick={onDuplicate} className={buttonClass}>
-                    <Copy size={20} />
-                    <span>Duplicate</span>
-                  </button>
-                  
-                  <button onClick={handleShowDimensions} className={primaryButtonClass}>
-                    <Ruler size={20} />
-                    <span>Show Dimensions</span>
-                  </button>
-                  
-                  <button 
-                    onClick={handleViewInAR} 
-                    className={primaryButtonClass}
-                    disabled={isLoadingAR}
-                  >
-                    <QrCode size={20} />
-                    <span>{isLoadingAR ? 'Loading...' : 'View in AR'}</span>
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-200 pt-3">
-                  <button onClick={onDelete} className={dangerButtonClass}>
-                    <Trash2 size={20} />
-                    <span>Delete Item</span>
-                  </button>
-                </div>
+              {/* Scale Controls */}
+              <div className="grid grid-cols-2 gap-1 mb-2">
+                <button 
+                  onClick={() => onScale('increase')}
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Zoom In"
+                >
+                  <ZoomIn size={16} className="text-gray-600 mb-1" />
+                  <span className="text-xs text-gray-600">Zoom +</span>
+                </button>
+                <button 
+                  onClick={() => onScale('decrease')}
+                  className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Zoom Out"
+                >
+                  <ZoomOut size={16} className="text-gray-600 mb-1" />
+                  <span className="text-xs text-gray-600">Zoom -</span>
+                </button>
               </div>
+
+              {/* Movement Controls */}
+              <div className="grid grid-cols-3 gap-1 mb-2">
+                <div></div>
+                <button 
+                  onClick={() => onMove('forward')}
+                  className="flex justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Move Up"
+                >
+                  <ArrowUp size={14} className="text-gray-600" />
+                </button>
+                <div></div>
+                <button 
+                  onClick={() => onMove('left')}
+                  className="flex justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Move Left"
+                >
+                  <ArrowLeft size={14} className="text-gray-600" />
+                </button>
+                <button 
+                  onClick={() => onMove('backward')}
+                  className="flex justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Move Down"
+                >
+                  <ArrowDown size={14} className="text-gray-600" />
+                </button>
+                <button 
+                  onClick={() => onMove('right')}
+                  className="flex justify-center p-2 rounded-lg hover:bg-white hover:bg-opacity-40 transition-colors"
+                  aria-label="Move Right"
+                >
+                  <ArrowRight size={14} className="text-gray-600" />
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100 my-2"></div>
+
+              {/* Primary Actions */}
+              <button 
+                onClick={() => handleShowDimensions()}
+                className="w-full flex items-center gap-2 p-2 rounded-lg bg-blue-500 bg-opacity-80 text-white hover:bg-blue-600 hover:bg-opacity-90 transition-colors"
+              >
+                <Ruler size={14} />
+                <span className="text-xs font-medium">Dimensions</span>
+              </button>
+
+              <button 
+                onClick={() => handleViewInAR()}
+                className="w-full flex items-center gap-2 p-2 rounded-lg bg-purple-500 bg-opacity-80 text-white hover:bg-purple-600 hover:bg-opacity-90 transition-colors"
+                disabled={isLoadingAR}
+              >
+                <QrCode size={14} />
+                <span className="text-xs font-medium">View AR</span>
+              </button>
+
+              <button 
+                onClick={() => onDuplicate()}
+                className="w-full flex items-center gap-2 p-2 rounded-lg bg-green-500 bg-opacity-80 text-white hover:bg-green-600 hover:bg-opacity-90 transition-colors"
+              >
+                <Copy size={14} />
+                <span className="text-xs font-medium">Duplicate</span>
+              </button>
+
+              <button 
+                onClick={() => onDelete()}
+                className="w-full flex items-center gap-2 p-2 rounded-lg bg-red-500 bg-opacity-80 text-white hover:bg-red-600 hover:bg-opacity-90 transition-colors"
+              >
+                <Trash2 size={14} />
+                <span className="text-xs font-medium">Delete</span>
+              </button>
             </div>
           </div>
         </>
@@ -297,33 +335,63 @@ const MobileResponsiveControlMenu = ({
       )}
 
       <style jsx>{`
-        @keyframes slide-left {
+        @keyframes slideInLeft {
           from {
-            transform: translateX(-100%);
+            transform: translateX(-100%) translateY(-50%);
+            opacity: 0;
           }
           to {
-            transform: translateX(0);
+            transform: translateX(0) translateY(-50%);
+            opacity: 1;
           }
         }
         
-        .animate-slide-left {
-          animation: slide-left 0.3s ease-out;
-        }
-
-        /* تأكد من ظهور الزر على جميع الأجهزة */
-        @media (max-width: 768px) {
-          .fixed {
-            position: fixed !important;
+        @keyframes slideOutLeft {
+          from {
+            transform: translateX(0) translateY(-50%);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(-100%) translateY(-50%);
+            opacity: 0;
           }
         }
 
-        /* إضافة تحسينات للـ touch */
-        .touch-manipulation {
-          touch-action: manipulation;
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
+        /* Smooth transitions */
+        .transition-transform {
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Enhanced hover effects */
+        button:hover {
+          transform: translateY(-1px);
+        }
+
+        button:active {
+          transform: translateY(0);
+        }
+
+        /* Touch optimization */
+        @media (max-width: 768px) {
+          button {
+            min-height: 40px;
+            touch-action: manipulation;
+          }
+        }
+
+        /* Enhanced backdrop blur */
+        .backdrop-blur-md {
+          backdrop-filter: blur(8px);
+        }
+
+        /* Glass effect */
+        .bg-opacity-90 {
+          background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Backdrop blur effect */
+        .backdrop-blur {
+          backdrop-filter: blur(4px);
         }
       `}</style>
     </>

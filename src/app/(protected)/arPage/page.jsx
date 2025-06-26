@@ -7,7 +7,6 @@ import ControlMenu from "@/components/common/ControlMenu";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
-import './custom.css';
 import Script from 'next/script';
 
 import  { useState, useEffect, useRef } from "react";
@@ -164,6 +163,47 @@ const handleTouchEnd = () => {
     });
     setModels(newModels);
   };
+const handleMoveItem = (id, direction) => {
+  const step = 0.5;
+
+  const newModels = models.map((model) => {
+    if (model.id === id) {
+      // تأكد من وجود position ونوعها string
+      const posStr = typeof model.position === 'string' ? model.position : "0 0 0";
+      const currentPosition = AFRAME.utils.coordinates.parse(posStr);
+      let newPosition = { ...currentPosition };
+
+      switch (direction) {
+        case "forward":
+          newPosition.z -= step;
+          break;
+        case "backward":
+          newPosition.z += step;
+          break;
+        case "left":
+          newPosition.x -= step;
+          break;
+        case "right":
+          newPosition.x += step;
+          break;
+        default:
+          break;
+      }
+
+      // ثبت y كما هو
+      newPosition.y = currentPosition.y;
+
+      return {
+        ...model,
+        position: AFRAME.utils.coordinates.stringify(newPosition),
+      };
+    }
+    return model;
+  });
+
+  setModels(newModels);
+};
+
 
   const handleScaleItem = (id, direction) => {
     const newModels = models.map((model) => {
@@ -285,7 +325,6 @@ const handleTouchEnd = () => {
     setSelectedModelId(null);
     setMenuPosition(null);
     setShowDimensionPopup(false);
-    // ✅ إخفاء المينيو عند النقر على الأرضية
     setShowMenu(false);
   };
 
@@ -301,306 +340,306 @@ const handleTouchEnd = () => {
     };
   }, []);
 
-//   if (typeof AFRAME !== "undefined") {
-//     if (!AFRAME.components["drag-drop"]) {
-//     AFRAME.registerComponent("drag-drop", {
-//   schema: {},
-//   init: function () {
-//     this.dragging = false;
-//     this.offset = new AFRAME.THREE.Vector3();
-//     this.cameraEl = null;
+  if (typeof AFRAME !== "undefined") {
+    if (!AFRAME.components["drag-drop"]) {
+    AFRAME.registerComponent("drag-drop", {
+  schema: {},
+  init: function () {
+    this.dragging = false;
+    this.offset = new AFRAME.THREE.Vector3();
+    this.cameraEl = null;
 
-//     // حفظ مقياس العنصر الأصلي
-//     this.originalScale = {
-//       x: this.el.object3D.scale.x,
-//       y: this.el.object3D.scale.y,
-//       z: this.el.object3D.scale.z,
-//     };
+    // حفظ مقياس العنصر الأصلي
+    this.originalScale = {
+      x: this.el.object3D.scale.x,
+      y: this.el.object3D.scale.y,
+      z: this.el.object3D.scale.z,
+    };
 
-//     // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
-//     this.initialBottomOffset = 0;
+    // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
+    this.initialBottomOffset = 0;
 
-//     // ربط الدوال عشان نستخدمها كـ event handlers
-//     this.onMouseDown = this.onMouseDown.bind(this);
-//     this.onMouseMove = this.onMouseMove.bind(this);
-//     this.onMouseUp = this.onMouseUp.bind(this);
-//     this.onTouchStart = this.onTouchStart.bind(this);
-//     this.onTouchMove = this.onTouchMove.bind(this);
-//     this.onTouchEnd = this.onTouchEnd.bind(this);
+    // ربط الدوال عشان نستخدمها كـ event handlers
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
 
-//     // إضافة أحداث الماوس واللمس
-//     this.el.addEventListener("mousedown", this.onMouseDown);
-//     this.el.addEventListener("touchstart", this.onTouchStart);
-//   },
+    // إضافة أحداث الماوس واللمس
+    this.el.addEventListener("mousedown", this.onMouseDown);
+    this.el.addEventListener("touchstart", this.onTouchStart);
+  },
 
-//   // بداية سحب بالماوس
-//   onMouseDown: function (evt) {
-//     evt.stopPropagation();
-//     evt.preventDefault();
-//     this.startDrag(evt.detail ? evt.detail.intersection : null);
-//     window.addEventListener("mousemove", this.onMouseMove);
-//     window.addEventListener("mouseup", this.onMouseUp);
-//   },
+  // بداية سحب بالماوس
+  onMouseDown: function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    this.startDrag(evt.detail ? evt.detail.intersection : null);
+    window.addEventListener("mousemove", this.onMouseMove);
+    window.addEventListener("mouseup", this.onMouseUp);
+  },
 
-//   // بداية سحب باللمس
-//   onTouchStart: function (evt) {
-//     evt.stopPropagation();
-//     evt.preventDefault();
-//     // في اللمس ممكن يكون evt.touches[0]
-//     this.startDrag(evt.detail ? evt.detail.intersection : null);
-//     window.addEventListener("touchmove", this.onTouchMove, { passive: false });
-//     window.addEventListener("touchend", this.onTouchEnd);
-//   },
+  // بداية سحب باللمس
+  onTouchStart: function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    // في اللمس ممكن يكون evt.touches[0]
+    this.startDrag(evt.detail ? evt.detail.intersection : null);
+    window.addEventListener("touchmove", this.onTouchMove, { passive: false });
+    window.addEventListener("touchend", this.onTouchEnd);
+  },
 
-//   // توحيد بداية السحب (للمس والماوس)
-//   startDrag: function (intersection) {
-//     this.dragging = true;
-//     this.originalScale = {
-//       x: this.el.object3D.scale.x,
-//       y: this.el.object3D.scale.y,
-//       z: this.el.object3D.scale.z,
-//     };
-//     this.cameraEl = this.el.sceneEl.querySelector("[camera]");
-//     if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-//       this.cameraEl.components["look-controls"].pause();
-//     }
-//     if (intersection) {
-//       this.offset.copy(this.el.object3D.position).sub(intersection.point);
-//       this.offset.y = 0;
-//     } else {
-//       this.offset.set(0, 0, 0);
-//     }
-//     const mesh = this.el.getObject3D("mesh");
-//     if (mesh) {
-//       const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-//       this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
-//     } else {
-//       this.initialBottomOffset = 0;
-//     }
-//   },
+  // توحيد بداية السحب (للمس والماوس)
+  startDrag: function (intersection) {
+    this.dragging = true;
+    this.originalScale = {
+      x: this.el.object3D.scale.x,
+      y: this.el.object3D.scale.y,
+      z: this.el.object3D.scale.z,
+    };
+    this.cameraEl = this.el.sceneEl.querySelector("[camera]");
+    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+      this.cameraEl.components["look-controls"].pause();
+    }
+    if (intersection) {
+      this.offset.copy(this.el.object3D.position).sub(intersection.point);
+      this.offset.y = 0;
+    } else {
+      this.offset.set(0, 0, 0);
+    }
+    const mesh = this.el.getObject3D("mesh");
+    if (mesh) {
+      const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+      this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
+    } else {
+      this.initialBottomOffset = 0;
+    }
+  },
 
-//   // تحريك بالماوس
-//   onMouseMove: function (evt) {
-//     if (!this.dragging) return;
-//     evt.preventDefault();
-//     this.handleDragMove(evt.clientX, evt.clientY);
-//   },
+  // تحريك بالماوس
+  onMouseMove: function (evt) {
+    if (!this.dragging) return;
+    evt.preventDefault();
+    this.handleDragMove(evt.clientX, evt.clientY);
+  },
 
-//   // تحريك باللمس
-//   onTouchMove: function (evt) {
-//     if (!this.dragging) return;
-//     evt.preventDefault();
-//     // نستخدم أول لمسة
-//     const touch = evt.touches[0];
-//     this.handleDragMove(touch.clientX, touch.clientY);
-//   },
+  // تحريك باللمس
+  onTouchMove: function (evt) {
+    if (!this.dragging) return;
+    evt.preventDefault();
+    // نستخدم أول لمسة
+    const touch = evt.touches[0];
+    this.handleDragMove(touch.clientX, touch.clientY);
+  },
 
-//   // التعامل مع الحركة موحدة
-//   handleDragMove: function (clientX, clientY) {
-//     const mouse = new AFRAME.THREE.Vector2();
-//     mouse.x = (clientX / window.innerWidth) * 2 - 1;
-//     mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+  // التعامل مع الحركة موحدة
+  handleDragMove: function (clientX, clientY) {
+    const mouse = new AFRAME.THREE.Vector2();
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
-//     const camera = this.el.sceneEl.camera;
-//     const raycaster = new AFRAME.THREE.Raycaster();
-//     raycaster.setFromCamera(mouse, camera);
+    const camera = this.el.sceneEl.camera;
+    const raycaster = new AFRAME.THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
 
-//     let intersectionPoint = null;
-//     const floorEl = document.getElementById("floor");
-//     if (floorEl) {
-//       const intersects = raycaster.intersectObject(floorEl.object3D, true);
-//       if (intersects.length > 0) {
-//         intersectionPoint = intersects[0].point;
-//       }
-//     }
-//     if (!intersectionPoint) {
-//       const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
-//       intersectionPoint = new AFRAME.THREE.Vector3();
-//       if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
-//     }
-
-//     const targetPos = intersectionPoint.clone().add(this.offset);
-
-//     // تطبيق حدود الغرفة (لو موجودة)
-//     if (window.roomBounds) {
-//       const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-//       const halfWidth = (box.max.x - box.min.x) / 2;
-//       const halfDepth = (box.max.z - box.min.z) / 2;
-//       const wallThickness = 0.5;
-//       const backMargin = 0.2;
-
-//       targetPos.x = Math.min(
-//         Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
-//         window.roomBounds.maxX - halfWidth
-//       );
-//       targetPos.z = Math.min(
-//         Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
-//         window.roomBounds.maxZ - halfDepth
-//       );
-//     } else {
-//       // حدود أمان افتراضية
-//       const safeBoundary = 3.5;
-//       targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
-//       targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
-//     }
-
-//     // ثبّت الارتفاع y (عشان العنصر على الأرض)
-//     targetPos.y = this.el.object3D.position.y;
-
-//     this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
-
-//     // ارجع مقياس العنصر الأصلي
-//     this.el.object3D.scale.set(
-//       this.originalScale.x,
-//       this.originalScale.y,
-//       this.originalScale.z
-//     );
-//   },
-
-//   // نهاية سحب الماوس
-//   onMouseUp: function (evt) {
-//     this.endDrag();
-//     window.removeEventListener("mousemove", this.onMouseMove);
-//     window.removeEventListener("mouseup", this.onMouseUp);
-//   },
-
-//   // نهاية سحب اللمس
-//   onTouchEnd: function (evt) {
-//     this.endDrag();
-//     window.removeEventListener("touchmove", this.onTouchMove);
-//     window.removeEventListener("touchend", this.onTouchEnd);
-//   },
-
-//   // توحيد نهاية السحب
-//   endDrag: function () {
-//     this.dragging = false;
-//     if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-//       this.cameraEl.components["look-controls"].play();
-//     }
-//   },
-
-//   // تنظيف الحدث
-//   remove: function () {
-//     this.el.removeEventListener("mousedown", this.onMouseDown);
-//     this.el.removeEventListener("touchstart", this.onTouchStart);
-//     window.removeEventListener("mousemove", this.onMouseMove);
-//     window.removeEventListener("mouseup", this.onMouseUp);
-//     window.removeEventListener("touchmove", this.onTouchMove);
-//     window.removeEventListener("touchend", this.onTouchEnd);
-//   },
-// });
-
-//     }
-
-//     // Updated bounding-box-helper using THREE.Box3Helper
-//     if (!AFRAME.components["bounding-box-helper"]) {
-//       AFRAME.registerComponent("bounding-box-helper", {
-//         schema: {
-//           // Default color set to bastel green.
-//           color: { type: "color", default: "#4CAF50" },
-//         },
-//         init: function () {
-//           // Create a Box3 to compute the object's bounding box.
-//           this.box = new THREE.Box3();
-//           // Create a Box3Helper that visualizes the computed box.
-//           this.helper = new THREE.Box3Helper(this.box, this.data.color);
-//           this.el.sceneEl.object3D.add(this.helper);
-//         },
-//         tick: function () {
-//           if (this.helper) {
-//             // Ensure the object's world matrices are up-to-date.
-//             this.el.object3D.updateMatrixWorld(true);
-//             // Recompute the bounding box.
-//             this.box.setFromObject(this.el.object3D);
-//             // Display helper as long as the box is not empty.
-//             this.helper.visible = !this.box.isEmpty();
-//           }
-//         },
-//         remove: function () {
-//           if (this.helper) {
-//             this.el.sceneEl.object3D.remove(this.helper);
-//             this.helper = null;
-//           }
-//         },
-//       });
-//     }
-//   }
-
-if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
-  AFRAME.registerComponent("drag-drop", {
-    init: function () {
-      this.dragging = false;
-      this.offset = new AFRAME.THREE.Vector3();
-      this.raycaster = new AFRAME.THREE.Raycaster();
-      this.mouse = new AFRAME.THREE.Vector2();
-      this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
-      this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
-
-      // Bind handlers
-      this.onPointerDown = this.onPointerDown.bind(this);
-      this.onPointerMove = this.onPointerMove.bind(this);
-      this.onPointerUp = this.onPointerUp.bind(this);
-
-      this.el.addEventListener("pointerdown", this.onPointerDown);
-      window.addEventListener("pointermove", this.onPointerMove);
-      window.addEventListener("pointerup", this.onPointerUp);
-    },
-
-    onPointerDown: function (evt) {
-      evt.preventDefault();
-      // Raycast من نقطة اللمس/الفأرة
-      const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-      const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-      const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
-
-      this.mouse.set(x, y);
-      this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
-
-      // تحقق تقاطع مع هذا العنصر
-      const intersects = this.raycaster.intersectObject(this.el.object3D, true);
+    let intersectionPoint = null;
+    const floorEl = document.getElementById("floor");
+    if (floorEl) {
+      const intersects = raycaster.intersectObject(floorEl.object3D, true);
       if (intersects.length > 0) {
-        this.dragging = true;
-        // حساب إزاحة النقطة الملموسة من مركز العنصر
-        this.intersectionPoint = intersects[0].point;
-        this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
+        intersectionPoint = intersects[0].point;
       }
-    },
+    }
+    if (!intersectionPoint) {
+      const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
+      intersectionPoint = new AFRAME.THREE.Vector3();
+      if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
+    }
 
-    onPointerMove: function (evt) {
-      if (!this.dragging) return;
-      evt.preventDefault();
+    const targetPos = intersectionPoint.clone().add(this.offset);
 
-      const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-      const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-      const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+    // تطبيق حدود الغرفة (لو موجودة)
+    if (window.roomBounds) {
+      const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+      const halfWidth = (box.max.x - box.min.x) / 2;
+      const halfDepth = (box.max.z - box.min.z) / 2;
+      const wallThickness = 0.5;
+      const backMargin = 0.2;
 
-      this.mouse.set(x, y);
-      this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+      targetPos.x = Math.min(
+        Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
+        window.roomBounds.maxX - halfWidth
+      );
+      targetPos.z = Math.min(
+        Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
+        window.roomBounds.maxZ - halfDepth
+      );
+    } else {
+      // حدود أمان افتراضية
+      const safeBoundary = 3.5;
+      targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
+      targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
+    }
 
-      // نقطع المستوى الأرضي (XZ plane)
-      const intersection = new AFRAME.THREE.Vector3();
-      if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
-        const newPos = intersection.clone().add(this.offset);
-        // تثبيت ارتفاع Y
-        newPos.y = this.el.object3D.position.y;
-        this.el.object3D.position.copy(newPos);
-      }
-    },
+    // ثبّت الارتفاع y (عشان العنصر على الأرض)
+    targetPos.y = this.el.object3D.position.y;
 
-    onPointerUp: function (evt) {
-      if (this.dragging) {
-        evt.preventDefault();
-        this.dragging = false;
-      }
-    },
+    this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
 
-    remove: function () {
-      this.el.removeEventListener("pointerdown", this.onPointerDown);
-      window.removeEventListener("pointermove", this.onPointerMove);
-      window.removeEventListener("pointerup", this.onPointerUp);
-    },
-  });
-}
+    // ارجع مقياس العنصر الأصلي
+    this.el.object3D.scale.set(
+      this.originalScale.x,
+      this.originalScale.y,
+      this.originalScale.z
+    );
+  },
+
+  // نهاية سحب الماوس
+  onMouseUp: function (evt) {
+    this.endDrag();
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("mouseup", this.onMouseUp);
+  },
+
+  // نهاية سحب اللمس
+  onTouchEnd: function (evt) {
+    this.endDrag();
+    window.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("touchend", this.onTouchEnd);
+  },
+
+  // توحيد نهاية السحب
+  endDrag: function () {
+    this.dragging = false;
+    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+      this.cameraEl.components["look-controls"].play();
+    }
+  },
+
+  // تنظيف الحدث
+  remove: function () {
+    this.el.removeEventListener("mousedown", this.onMouseDown);
+    this.el.removeEventListener("touchstart", this.onTouchStart);
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("mouseup", this.onMouseUp);
+    window.removeEventListener("touchmove", this.onTouchMove);
+    window.removeEventListener("touchend", this.onTouchEnd);
+  },
+});
+
+    }
+
+    // Updated bounding-box-helper using THREE.Box3Helper
+    if (!AFRAME.components["bounding-box-helper"]) {
+      AFRAME.registerComponent("bounding-box-helper", {
+        schema: {
+          // Default color set to bastel green.
+          color: { type: "color", default: "#4CAF50" },
+        },
+        init: function () {
+          // Create a Box3 to compute the object's bounding box.
+          this.box = new THREE.Box3();
+          // Create a Box3Helper that visualizes the computed box.
+          this.helper = new THREE.Box3Helper(this.box, this.data.color);
+          this.el.sceneEl.object3D.add(this.helper);
+        },
+        tick: function () {
+          if (this.helper) {
+            // Ensure the object's world matrices are up-to-date.
+            this.el.object3D.updateMatrixWorld(true);
+            // Recompute the bounding box.
+            this.box.setFromObject(this.el.object3D);
+            // Display helper as long as the box is not empty.
+            this.helper.visible = !this.box.isEmpty();
+          }
+        },
+        remove: function () {
+          if (this.helper) {
+            this.el.sceneEl.object3D.remove(this.helper);
+            this.helper = null;
+          }
+        },
+      });
+    }
+  }
+
+// if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
+//   AFRAME.registerComponent("drag-drop", {
+//     init: function () {
+//       this.dragging = false;
+//       this.offset = new AFRAME.THREE.Vector3();
+//       this.raycaster = new AFRAME.THREE.Raycaster();
+//       this.mouse = new AFRAME.THREE.Vector2();
+//       this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
+//       this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
+
+//       // Bind handlers
+//       this.onPointerDown = this.onPointerDown.bind(this);
+//       this.onPointerMove = this.onPointerMove.bind(this);
+//       this.onPointerUp = this.onPointerUp.bind(this);
+
+//       this.el.addEventListener("pointerdown", this.onPointerDown);
+//       window.addEventListener("pointermove", this.onPointerMove);
+//       window.addEventListener("pointerup", this.onPointerUp);
+//     },
+
+//     onPointerDown: function (evt) {
+//       evt.preventDefault();
+//       // Raycast من نقطة اللمس/الفأرة
+//       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+//       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+//       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+
+//       this.mouse.set(x, y);
+//       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+
+//       // تحقق تقاطع مع هذا العنصر
+//       const intersects = this.raycaster.intersectObject(this.el.object3D, true);
+//       if (intersects.length > 0) {
+//         this.dragging = true;
+//         // حساب إزاحة النقطة الملموسة من مركز العنصر
+//         this.intersectionPoint = intersects[0].point;
+//         this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
+//       }
+//     },
+
+//     onPointerMove: function (evt) {
+//       if (!this.dragging) return;
+//       evt.preventDefault();
+
+//       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+//       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+//       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+
+//       this.mouse.set(x, y);
+//       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+
+//       // نقطع المستوى الأرضي (XZ plane)
+//       const intersection = new AFRAME.THREE.Vector3();
+//       if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
+//         const newPos = intersection.clone().add(this.offset);
+//         // تثبيت ارتفاع Y
+//         newPos.y = this.el.object3D.position.y;
+//         this.el.object3D.position.copy(newPos);
+//       }
+//     },
+
+//     onPointerUp: function (evt) {
+//       if (this.dragging) {
+//         evt.preventDefault();
+//         this.dragging = false;
+//       }
+//     },
+
+//     remove: function () {
+//       this.el.removeEventListener("pointerdown", this.onPointerDown);
+//       window.removeEventListener("pointermove", this.onPointerMove);
+//       window.removeEventListener("pointerup", this.onPointerUp);
+//     },
+//   });
+// }
 
 
   const handleModelClick = (evt, model) => {
@@ -608,7 +647,6 @@ if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
     setSelectedModelId(model.id);
     setMenuPosition({ x: 0, y: 0 });
     setShowDimensionPopup(false);
-    // ✅ إظهار المينيو عند اختيار عنصر
     setShowMenu(true);
 
     const src = model.src;
@@ -710,57 +748,115 @@ return (
         setSelectedItem={setSelectedItem}
       />
     }
-    controlMenu={
-      showMenu && selectedModelId && menuPosition && (
-        <>
-          {/* Desktop menu */}
-          <div className="hidden md:block absolute top-4 right-4 z-10">
-            <ControlMenu
-              dimensionsText={dimensionsText}
-              dimContainerPos={dimContainerPos}
-              showDimensionPopup={showDimensionPopup}
-              position={menuPosition}
-              onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-              onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-              onDuplicate={handleDuplicateItem}
-              onDelete={() => handleRemoveItem(selectedModelId)}
-              handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-              selectedModelId={selectedModelId}
-              selectedItem={selectedItem}
-              items={data}
-              mutate={mutate}
-              setMenuPosition={setMenuPosition}
-              setQrCodeData={setQrCodeData}
-              setShowQRPopup={setShowQRPopup}
-              setShowMenu={setShowMenu}
-            />
-          </div>
+    // controlMenu={
+    //   showMenu && selectedModelId && menuPosition && (
+    //     <>
+    //       {/* Desktop menu */}
+    //       <div className="hidden md:block absolute top-4 right-4 z-10">
+    //         <ControlMenu
+    //           dimensionsText={dimensionsText}
+    //           dimContainerPos={dimContainerPos}
+    //           showDimensionPopup={showDimensionPopup}
+    //           position={menuPosition}
+    //           onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+    //           onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+    //           onDuplicate={handleDuplicateItem}
+    //           onDelete={() => handleRemoveItem(selectedModelId)}
+    //           handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+    //           selectedModelId={selectedModelId}
+    //           selectedItem={selectedItem}
+    //           items={data}
+    //           mutate={mutate}
+    //           setMenuPosition={setMenuPosition}
+    //           setQrCodeData={setQrCodeData}
+    //           setShowQRPopup={setShowQRPopup}
+    //           setShowMenu={setShowMenu}
+    //         />
+    //       </div>
 
-          {/* Mobile menu */}
-          <div className="block md:hidden">
-            <MobileResponsiveControlMenu
-              dimensionsText={dimensionsText}
-              dimContainerPos={dimContainerPos}
-              showDimensionPopup={showDimensionPopup}
-              position={menuPosition}
-              onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-              onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-              onDuplicate={handleDuplicateItem}
-              onDelete={() => handleRemoveItem(selectedModelId)}
-              handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-              selectedModelId={selectedModelId}
-              selectedItem={selectedItem}
-              items={data}
-              mutate={mutate}
-              setMenuPosition={setMenuPosition}
-              setQrCodeData={setQrCodeData}
-              setShowQRPopup={setShowQRPopup}
-              setShowMenu={setShowMenu}
-            />
-          </div>
-        </>
-      )
-    }
+    //       {/* Mobile menu */}
+    //       <div className="block md:hidden">
+    //         <MobileResponsiveControlMenu
+    //           dimensionsText={dimensionsText}
+    //           dimContainerPos={dimContainerPos}
+    //           showDimensionPopup={showDimensionPopup}
+    //           position={menuPosition}
+    //           onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+    //           onMove={(dir) => handleMoveItem (selectedModelId, dir)}
+    //           onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+    //           onDuplicate={handleDuplicateItem}
+    //           onDelete={() => handleRemoveItem(selectedModelId)}
+    //           handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+    //           selectedModelId={selectedModelId}
+    //           selectedItem={selectedItem}
+    //           items={data}
+    //           mutate={mutate}
+    //           setMenuPosition={setMenuPosition}
+    //           setQrCodeData={setQrCodeData}
+    //           setShowQRPopup={setShowQRPopup}
+    //           setShowMenu={setShowMenu}
+    //         />
+    //       </div>
+    //     </>
+    //   )
+    // }
+    controlMenu={
+  showMenu && selectedModelId && menuPosition && (
+    <>
+      {/* Desktop menu: */}
+      {(!isMobile) && (
+        <div className="absolute top-4 right-4 z-10">
+          <ControlMenu
+            dimensionsText={dimensionsText}
+            dimContainerPos={dimContainerPos}
+            showDimensionPopup={showDimensionPopup}
+            position={menuPosition}
+            onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+            onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+            onDuplicate={handleDuplicateItem}
+            onDelete={() => handleRemoveItem(selectedModelId)}
+            handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+            selectedModelId={selectedModelId}
+            selectedItem={selectedItem}
+            items={data}
+            mutate={mutate}
+            setMenuPosition={setMenuPosition}
+            setQrCodeData={setQrCodeData}
+            setShowQRPopup={setShowQRPopup}
+            setShowMenu={setShowMenu}
+          />
+        </div>
+      )}
+
+      {/* Mobile menu: */}
+      {isMobile && (
+        <div className="block md:hidden">
+          <MobileResponsiveControlMenu
+            dimensionsText={dimensionsText}
+            dimContainerPos={dimContainerPos}
+            showDimensionPopup={showDimensionPopup}
+            position={menuPosition}
+            onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+            onMove={(dir) => handleMoveItem(selectedModelId, dir)}
+            onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+            onDuplicate={handleDuplicateItem}
+            onDelete={() => handleRemoveItem(selectedModelId)}
+            handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+            selectedModelId={selectedModelId}
+            selectedItem={selectedItem}
+            items={data}
+            mutate={mutate}
+            setMenuPosition={setMenuPosition}
+            setQrCodeData={setQrCodeData}
+            setShowQRPopup={setShowQRPopup}
+            // setShowMenu={setShowMenu}
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
     measurementButton={
       <button
         onClick={() => setShowMeasurementTool(!showMeasurementTool)}
