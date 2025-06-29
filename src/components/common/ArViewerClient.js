@@ -33,7 +33,7 @@ export default function ArViewerClient() {
 
             // ابعد الكاميرا بعد تحميل الموديل (Zoom Out)
             setTimeout(() => {
-                viewerRef.current?.setAttribute('camera-orbit', '0deg 75deg 3m');
+                viewerRef.current?.setAttribute('camera-orbit', '0deg 75deg 10m');
             }, 500); // تأخير بسيط لانتظار تحميل الموديل
         } else {
             setError('Model URL not found');
