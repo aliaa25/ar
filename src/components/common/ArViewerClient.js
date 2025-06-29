@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
 export default function ArViewerClient() {
     const viewerRef = useRef(null);
     const [modelUrl, setModelUrl] = useState('');
@@ -23,18 +24,21 @@ export default function ArViewerClient() {
 
         loadModelViewer();
 
-        // Extract URL parameters
         const model = searchParams.get('model');
         const name = searchParams.get('name');
         
         if (model) {
             setModelUrl(decodeURIComponent(model));
             setModelName(decodeURIComponent(name || '3D Model'));
+
+            // ابعد الكاميرا بعد تحميل الموديل (Zoom Out)
+            setTimeout(() => {
+                viewerRef.current?.setAttribute('camera-orbit', '0deg 75deg 3m');
+            }, 500); // تأخير بسيط لانتظار تحميل الموديل
         } else {
             setError('Model URL not found');
         }
         
-        // Check AR support
         checkARSupport();
     }, [searchParams]);
 
@@ -95,6 +99,7 @@ export default function ArViewerClient() {
                     </button>
                 </div>
             </div>
+
             {/* AR Support Warning */}
             {!isARSupported  && (
                 <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 m-4">
@@ -118,29 +123,27 @@ export default function ArViewerClient() {
                         {modelUrl && (
                             <div className="relative">
                                 <model-viewer
-    ref={viewerRef}
-    src={modelUrl}
-    alt={modelName}
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    ar-placement="floor"
-    camera-controls
-    touch-action="pan-y"
-    environment-image="neutral"
-    shadow-intensity="1"
-    shadow-softness="0.5"
-    style={{
-        width: '100%',
-        height: '70vh',
-        minHeight: '400px',
-        backgroundColor: '#f8fafc'
-    }}
-    onError={handleModelError}
-    loading="eager"
-    reveal="auto"
->
-
-
+                                    ref={viewerRef}
+                                    src={modelUrl}
+                                    alt={modelName}
+                                    ar
+                                    ar-modes="webxr scene-viewer quick-look"
+                                    ar-placement="floor"
+                                    camera-controls
+                                    touch-action="pan-y"
+                                    environment-image="neutral"
+                                    shadow-intensity="1"
+                                    shadow-softness="0.5"
+                                    style={{
+                                        width: '100%',
+                                        height: '70vh',
+                                        minHeight: '400px',
+                                        backgroundColor: '#f8fafc'
+                                    }}
+                                    onError={handleModelError}
+                                    loading="eager"
+                                    reveal="auto"
+                                >
                                     {/* AR Button */}
                                     <button 
                                         slot="ar-button"
@@ -214,7 +217,6 @@ export default function ArViewerClient() {
                                     Reset Camera
                                 </button>
                             
-                                
                                 <button 
                                     onClick={() => {
                                         if (navigator.share && modelUrl) {
@@ -258,8 +260,6 @@ export default function ArViewerClient() {
                     </p>
                 </div>
             </div>
-
-
         </div>
     );
 }
