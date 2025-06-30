@@ -1,87 +1,7 @@
-// "use client";
-// import { Button } from "@/components/ui/button";
-// import SearchBar from "@/components/common/Searchbar";
-
-// export default function FurnitureMenu({
-//   items,
-//   onAddItem,
-//   onUploadClick,
-//   furnitureFileInputRef,
-//   mutate, // <-- you must pass this from the parent component
-//   handleFurnitureUpload, // <-- also pass this from parent
-// // <-- Add this to track the selected model
-//   setMenuPosition,
-// // <-- Add this to update the menu position
-//  setSelectedItem,
-// }) {
-//   // When an item is clicked, we update the menu's position to show the control menu
-
-//   const handleItemClick = (item) => {
-//   mutate(item.name, {
-//     onSuccess: (data) => {
-//       onAddItem(data.arFileUrl);
-//       setMenuPosition({ x: 0, y: 0 });
-//        setSelectedItem({
-//           ...item,
-//           arFileUrl: data?.arFileUrl,
-//         });
-
-//         console.log("✅ Item selected and AR URL set:", {
-//           ...item,
-//           arFileUrl: data?.arFileUrl,
-//         });
-
-
-//     }
-//   });
-// };
-
-
-
-//   return (
-//     <div>
-//       <SearchBar />
-//       <div className="grid grid-cols-1 gap-4 w-full max-h-[77vh] overflow-y-auto bg-white custom-scrollbar p-4 rounded-lg shadow-lg">
-//         <div className="my-3">
-//           <Button
-//             onClick={onUploadClick}
-//             className="bg-mainbackground text-white px-28 py-3 rounded hover:bg-mainbackground/10 transition"
-//           >
-//             Upload Furniture
-//           </Button>
-//           <input
-//             type="file"
-//             accept=".glb,.gltf"
-//             onChange={handleFurnitureUpload}
-//             ref={furnitureFileInputRef}
-//             style={{ display: "none" }}
-//           />
-//         </div>
-
-//         <div className="flex flex-wrap justify-center items-center cursor-pointer">
-//           {items.map((item) => (
-//             <div
-//               key={item._id}
-//               onClick={() => handleItemClick(item)}
-//             >
-//               <img
-//                 src={item.imageUrl}
-//                 alt={item.name}
-//                 className="w-full h-24 object-contain rounded-md"
-//               />
-//               <p className="text-center text-gray-800 mt-2 font-medium">{item.name}</p>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
 
 "use client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import SearchBar from "@/components/common/Searchbar";
 import { motion } from "framer-motion";
 import FurnitureItem from "@/components/common/FurnitureItem"
 
@@ -98,7 +18,7 @@ export default function FurnitureMenu({
 }) {
   const [filterText, setFilterText] = useState("");
   const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
-  console.log(items)
+ 
 
   const handleItemClick = (item) => {
     mutate(item.name, {

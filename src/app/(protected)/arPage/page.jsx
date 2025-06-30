@@ -1,3 +1,4 @@
+
 "use client";
 import useGetProducts from "@/hooks/useGetProducts";
 import usePostArFile from "@/hooks/usePostArFile";
@@ -10,7 +11,11 @@ import ResponsiveARView from '@/components/common/ResponsiveARView';
 import DimensionsDisplay from '@/components/common/DimensionsDisplay';
 import Script from 'next/script';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import  { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import usePostSaveProjects from "@/hooks/projects/usePostSaveProject";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
 
 export default function Page() {
   useRoomBound();
@@ -29,24 +34,26 @@ export default function Page() {
   const { data, isLoading, error } = useGetProducts()
   const { mutate } = usePostArFile()
   const [showMeasurementTool, setShowMeasurementTool] = useState(false);
-const draggingRef = useRef(false);
-const lastTouchRef = useRef({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+  const lastTouchRef = useRef({ x: 0, y: 0 });
+  const router = useRouter();
 
-const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
-const [isMobile, setIsMobile] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 1, z: 0 });
+  const [isMobile, setIsMobile] = useState(false);
   const [showDimensionsDisplay, setShowDimensionsDisplay] = useState(false);
- const wallThickness = 0.5;
+  const wallThickness = 0.5;
   const floorThickness = 0.2;
   const ceilingThickness = 0.2;
+  const { mutate: SaveProjects } = usePostSaveProjects();
 
-useEffect(() => {
-  if (typeof window !== 'undefined') {
-    setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
-  }
-}, []);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
+    }
+  }, []);
   useEffect(() => {
     if (typeof window !== 'undefined' && window.AFRAME &&
-    !AFRAME.components['custom-touch-look-controls']) {
+      !AFRAME.components['custom-touch-look-controls']) {
       AFRAME.registerComponent('custom-touch-look-controls', {
         schema: { enabled: { default: true } },
         init: function () {
@@ -88,7 +95,7 @@ useEffect(() => {
       });
     }
   }, []);
-// --- Compute room boundaries ---
+  // --- Compute room boundaries ---
   async function getRoomDimensions() {
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();
@@ -125,30 +132,30 @@ useEffect(() => {
       );
     });
   }
- 
 
-const handleTouchStart = (e) => {
-  draggingRef.current = true;
-  const touch = e.touches[0];
-  lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-  e.preventDefault();
-};
 
-const handleTouchMove = (e) => {
-  if (!draggingRef.current) return;
-  const touch = e.touches[0];
-  const dx = touch.clientX - lastTouchRef.current.x;
-  const dy = touch.clientY - lastTouchRef.current.y;
-  lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
+  const handleTouchStart = (e) => {
+    draggingRef.current = true;
+    const touch = e.touches[0];
+    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
+    e.preventDefault();
+  };
 
-  setCursorPosition((prev) => ({
-    x: prev.x + dx * 0.01,
-    y: Math.min(Math.max(prev.y - dy * 0.01, 0.5), 3),
-    z: prev.z,
-  }));
+  const handleTouchMove = (e) => {
+    if (!draggingRef.current) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - lastTouchRef.current.x;
+    const dy = touch.clientY - lastTouchRef.current.y;
+    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
 
-  e.preventDefault();
-};
+    setCursorPosition((prev) => ({
+      x: prev.x + dx * 0.01,
+      y: Math.min(Math.max(prev.y - dy * 0.01, 0.5), 3),
+      z: prev.z,
+    }));
+
+    e.preventDefault();
+  };
 
   const handleAddItem = (itemSrc) => {
     const model = {
@@ -165,7 +172,7 @@ const handleTouchMove = (e) => {
     setShowMenu(false);
     setModelId(modelId + 1);
   };
-  
+
 
   const handleRemoveItem = (id) => {
     const newModels = models.filter((model) => model.id !== id);
@@ -332,192 +339,192 @@ const handleTouchMove = (e) => {
 
   if (typeof AFRAME !== "undefined") {
     if (!AFRAME.components["drag-drop"]) {
-    AFRAME.registerComponent("drag-drop", {
-  schema: {},
-  init: function () {
-    this.dragging = false;
-    this.offset = new AFRAME.THREE.Vector3();
-    this.cameraEl = null;
+      AFRAME.registerComponent("drag-drop", {
+        schema: {},
+        init: function () {
+          this.dragging = false;
+          this.offset = new AFRAME.THREE.Vector3();
+          this.cameraEl = null;
 
-    // حفظ مقياس العنصر الأصلي
-    this.originalScale = {
-      x: this.el.object3D.scale.x,
-      y: this.el.object3D.scale.y,
-      z: this.el.object3D.scale.z,
-    };
+          // حفظ مقياس العنصر الأصلي
+          this.originalScale = {
+            x: this.el.object3D.scale.x,
+            y: this.el.object3D.scale.y,
+            z: this.el.object3D.scale.z,
+          };
 
-    // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
-    this.initialBottomOffset = 0;
+          // قيمة إزاحة أسفل العنصر (حسب الباوندينغ بوكس)
+          this.initialBottomOffset = 0;
 
-    // ربط الدوال عشان نستخدمها كـ event handlers
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
+          // ربط الدوال عشان نستخدمها كـ event handlers
+          this.onMouseDown = this.onMouseDown.bind(this);
+          this.onMouseMove = this.onMouseMove.bind(this);
+          this.onMouseUp = this.onMouseUp.bind(this);
+          this.onTouchStart = this.onTouchStart.bind(this);
+          this.onTouchMove = this.onTouchMove.bind(this);
+          this.onTouchEnd = this.onTouchEnd.bind(this);
 
-    // إضافة أحداث الماوس واللمس
-    this.el.addEventListener("mousedown", this.onMouseDown);
-    this.el.addEventListener("touchstart", this.onTouchStart);
-  },
+          // إضافة أحداث الماوس واللمس
+          this.el.addEventListener("mousedown", this.onMouseDown);
+          this.el.addEventListener("touchstart", this.onTouchStart);
+        },
 
-  // بداية سحب بالماوس
-  onMouseDown: function (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    this.startDrag(evt.detail ? evt.detail.intersection : null);
-    window.addEventListener("mousemove", this.onMouseMove);
-    window.addEventListener("mouseup", this.onMouseUp);
-  },
+        // بداية سحب بالماوس
+        onMouseDown: function (evt) {
+          evt.stopPropagation();
+          evt.preventDefault();
+          this.startDrag(evt.detail ? evt.detail.intersection : null);
+          window.addEventListener("mousemove", this.onMouseMove);
+          window.addEventListener("mouseup", this.onMouseUp);
+        },
 
-  // بداية سحب باللمس
-  onTouchStart: function (evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    // في اللمس ممكن يكون evt.touches[0]
-    this.startDrag(evt.detail ? evt.detail.intersection : null);
-    window.addEventListener("touchmove", this.onTouchMove, { passive: false });
-    window.addEventListener("touchend", this.onTouchEnd);
-  },
+        // بداية سحب باللمس
+        onTouchStart: function (evt) {
+          evt.stopPropagation();
+          evt.preventDefault();
+          // في اللمس ممكن يكون evt.touches[0]
+          this.startDrag(evt.detail ? evt.detail.intersection : null);
+          window.addEventListener("touchmove", this.onTouchMove, { passive: false });
+          window.addEventListener("touchend", this.onTouchEnd);
+        },
 
-  // توحيد بداية السحب (للمس والماوس)
-  startDrag: function (intersection) {
-    this.dragging = true;
-    this.originalScale = {
-      x: this.el.object3D.scale.x,
-      y: this.el.object3D.scale.y,
-      z: this.el.object3D.scale.z,
-    };
-    this.cameraEl = this.el.sceneEl.querySelector("[camera]");
-    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-      this.cameraEl.components["look-controls"].pause();
-    }
-    if (intersection) {
-      this.offset.copy(this.el.object3D.position).sub(intersection.point);
-      this.offset.y = 0;
-    } else {
-      this.offset.set(0, 0, 0);
-    }
-    const mesh = this.el.getObject3D("mesh");
-    if (mesh) {
-      const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-      this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
-    } else {
-      this.initialBottomOffset = 0;
-    }
-  },
+        // توحيد بداية السحب (للمس والماوس)
+        startDrag: function (intersection) {
+          this.dragging = true;
+          this.originalScale = {
+            x: this.el.object3D.scale.x,
+            y: this.el.object3D.scale.y,
+            z: this.el.object3D.scale.z,
+          };
+          this.cameraEl = this.el.sceneEl.querySelector("[camera]");
+          if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+            this.cameraEl.components["look-controls"].pause();
+          }
+          if (intersection) {
+            this.offset.copy(this.el.object3D.position).sub(intersection.point);
+            this.offset.y = 0;
+          } else {
+            this.offset.set(0, 0, 0);
+          }
+          const mesh = this.el.getObject3D("mesh");
+          if (mesh) {
+            const bbox = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+            this.initialBottomOffset = this.el.object3D.position.y - bbox.min.y;
+          } else {
+            this.initialBottomOffset = 0;
+          }
+        },
 
-  // تحريك بالماوس
-  onMouseMove: function (evt) {
-    if (!this.dragging) return;
-    evt.preventDefault();
-    this.handleDragMove(evt.clientX, evt.clientY);
-  },
+        // تحريك بالماوس
+        onMouseMove: function (evt) {
+          if (!this.dragging) return;
+          evt.preventDefault();
+          this.handleDragMove(evt.clientX, evt.clientY);
+        },
 
-  // تحريك باللمس
-  onTouchMove: function (evt) {
-    if (!this.dragging) return;
-    evt.preventDefault();
-    // نستخدم أول لمسة
-    const touch = evt.touches[0];
-    this.handleDragMove(touch.clientX, touch.clientY);
-  },
+        // تحريك باللمس
+        onTouchMove: function (evt) {
+          if (!this.dragging) return;
+          evt.preventDefault();
+          // نستخدم أول لمسة
+          const touch = evt.touches[0];
+          this.handleDragMove(touch.clientX, touch.clientY);
+        },
 
-  // التعامل مع الحركة موحدة
-  handleDragMove: function (clientX, clientY) {
-    const mouse = new AFRAME.THREE.Vector2();
-    mouse.x = (clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+        // التعامل مع الحركة موحدة
+        handleDragMove: function (clientX, clientY) {
+          const mouse = new AFRAME.THREE.Vector2();
+          mouse.x = (clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
-    const camera = this.el.sceneEl.camera;
-    const raycaster = new AFRAME.THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
+          const camera = this.el.sceneEl.camera;
+          const raycaster = new AFRAME.THREE.Raycaster();
+          raycaster.setFromCamera(mouse, camera);
 
-    let intersectionPoint = null;
-    const floorEl = document.getElementById("floor");
-    if (floorEl) {
-      const intersects = raycaster.intersectObject(floorEl.object3D, true);
-      if (intersects.length > 0) {
-        intersectionPoint = intersects[0].point;
-      }
-    }
-    if (!intersectionPoint) {
-      const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
-      intersectionPoint = new AFRAME.THREE.Vector3();
-      if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
-    }
+          let intersectionPoint = null;
+          const floorEl = document.getElementById("floor");
+          if (floorEl) {
+            const intersects = raycaster.intersectObject(floorEl.object3D, true);
+            if (intersects.length > 0) {
+              intersectionPoint = intersects[0].point;
+            }
+          }
+          if (!intersectionPoint) {
+            const plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0);
+            intersectionPoint = new AFRAME.THREE.Vector3();
+            if (raycaster.ray.intersectPlane(plane, intersectionPoint) === null) return;
+          }
 
-    const targetPos = intersectionPoint.clone().add(this.offset);
+          const targetPos = intersectionPoint.clone().add(this.offset);
 
-    // تطبيق حدود الغرفة (لو موجودة)
-    if (window.roomBounds) {
-      const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
-      const halfWidth = (box.max.x - box.min.x) / 2;
-      const halfDepth = (box.max.z - box.min.z) / 2;
-      const wallThickness = 0.5;
-      const backMargin = 0.2;
+          // تطبيق حدود الغرفة (لو موجودة)
+          if (window.roomBounds) {
+            const box = new AFRAME.THREE.Box3().setFromObject(this.el.object3D);
+            const halfWidth = (box.max.x - box.min.x) / 2;
+            const halfDepth = (box.max.z - box.min.z) / 2;
+            const wallThickness = 0.5;
+            const backMargin = 0.2;
 
-      targetPos.x = Math.min(
-        Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
-        window.roomBounds.maxX - halfWidth
-      );
-      targetPos.z = Math.min(
-        Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
-        window.roomBounds.maxZ - halfDepth
-      );
-    } else {
-      // حدود أمان افتراضية
-      const safeBoundary = 3.5;
-      targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
-      targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
-    }
+            targetPos.x = Math.min(
+              Math.max(targetPos.x, window.roomBounds.minX + halfWidth),
+              window.roomBounds.maxX - halfWidth
+            );
+            targetPos.z = Math.min(
+              Math.max(targetPos.z, window.roomBounds.minZ + wallThickness + halfDepth + backMargin),
+              window.roomBounds.maxZ - halfDepth
+            );
+          } else {
+            // حدود أمان افتراضية
+            const safeBoundary = 3.5;
+            targetPos.x = Math.max(-safeBoundary, Math.min(targetPos.x, safeBoundary));
+            targetPos.z = Math.max(-safeBoundary, Math.min(targetPos.z, safeBoundary));
+          }
 
-    // ثبّت الارتفاع y (عشان العنصر على الأرض)
-    targetPos.y = this.el.object3D.position.y;
+          // ثبّت الارتفاع y (عشان العنصر على الأرض)
+          targetPos.y = this.el.object3D.position.y;
 
-    this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
+          this.el.setAttribute("position", `${targetPos.x} ${targetPos.y} ${targetPos.z}`);
 
-    // ارجع مقياس العنصر الأصلي
-    this.el.object3D.scale.set(
-      this.originalScale.x,
-      this.originalScale.y,
-      this.originalScale.z
-    );
-  },
+          // ارجع مقياس العنصر الأصلي
+          this.el.object3D.scale.set(
+            this.originalScale.x,
+            this.originalScale.y,
+            this.originalScale.z
+          );
+        },
 
-  // نهاية سحب الماوس
-  onMouseUp: function (evt) {
-    this.endDrag();
-    window.removeEventListener("mousemove", this.onMouseMove);
-    window.removeEventListener("mouseup", this.onMouseUp);
-  },
+        // نهاية سحب الماوس
+        onMouseUp: function (evt) {
+          this.endDrag();
+          window.removeEventListener("mousemove", this.onMouseMove);
+          window.removeEventListener("mouseup", this.onMouseUp);
+        },
 
-  // نهاية سحب اللمس
-  onTouchEnd: function (evt) {
-    this.endDrag();
-    window.removeEventListener("touchmove", this.onTouchMove);
-    window.removeEventListener("touchend", this.onTouchEnd);
-  },
+        // نهاية سحب اللمس
+        onTouchEnd: function (evt) {
+          this.endDrag();
+          window.removeEventListener("touchmove", this.onTouchMove);
+          window.removeEventListener("touchend", this.onTouchEnd);
+        },
 
-  // توحيد نهاية السحب
-  endDrag: function () {
-    this.dragging = false;
-    if (this.cameraEl && this.cameraEl.components["look-controls"]) {
-      this.cameraEl.components["look-controls"].play();
-    }
-  },
+        // توحيد نهاية السحب
+        endDrag: function () {
+          this.dragging = false;
+          if (this.cameraEl && this.cameraEl.components["look-controls"]) {
+            this.cameraEl.components["look-controls"].play();
+          }
+        },
 
-  // تنظيف الحدث
-  remove: function () {
-    this.el.removeEventListener("mousedown", this.onMouseDown);
-    this.el.removeEventListener("touchstart", this.onTouchStart);
-    window.removeEventListener("mousemove", this.onMouseMove);
-    window.removeEventListener("mouseup", this.onMouseUp);
-    window.removeEventListener("touchmove", this.onTouchMove);
-    window.removeEventListener("touchend", this.onTouchEnd);
-  },
-});
+        // تنظيف الحدث
+        remove: function () {
+          this.el.removeEventListener("mousedown", this.onMouseDown);
+          this.el.removeEventListener("touchstart", this.onTouchStart);
+          window.removeEventListener("mousemove", this.onMouseMove);
+          window.removeEventListener("mouseup", this.onMouseUp);
+          window.removeEventListener("touchmove", this.onTouchMove);
+          window.removeEventListener("touchend", this.onTouchEnd);
+        },
+      });
 
     }
 
@@ -555,81 +562,81 @@ const handleTouchMove = (e) => {
     }
   }
 
-// if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
-//   AFRAME.registerComponent("drag-drop", {
-//     init: function () {
-//       this.dragging = false;
-//       this.offset = new AFRAME.THREE.Vector3();
-//       this.raycaster = new AFRAME.THREE.Raycaster();
-//       this.mouse = new AFRAME.THREE.Vector2();
-//       this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
-//       this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
+  // if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
+  //   AFRAME.registerComponent("drag-drop", {
+  //     init: function () {
+  //       this.dragging = false;
+  //       this.offset = new AFRAME.THREE.Vector3();
+  //       this.raycaster = new AFRAME.THREE.Raycaster();
+  //       this.mouse = new AFRAME.THREE.Vector2();
+  //       this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
+  //       this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
 
-//       // Bind handlers
-//       this.onPointerDown = this.onPointerDown.bind(this);
-//       this.onPointerMove = this.onPointerMove.bind(this);
-//       this.onPointerUp = this.onPointerUp.bind(this);
+  //       // Bind handlers
+  //       this.onPointerDown = this.onPointerDown.bind(this);
+  //       this.onPointerMove = this.onPointerMove.bind(this);
+  //       this.onPointerUp = this.onPointerUp.bind(this);
 
-//       this.el.addEventListener("pointerdown", this.onPointerDown);
-//       window.addEventListener("pointermove", this.onPointerMove);
-//       window.addEventListener("pointerup", this.onPointerUp);
-//     },
+  //       this.el.addEventListener("pointerdown", this.onPointerDown);
+  //       window.addEventListener("pointermove", this.onPointerMove);
+  //       window.addEventListener("pointerup", this.onPointerUp);
+  //     },
 
-//     onPointerDown: function (evt) {
-//       evt.preventDefault();
-//       // Raycast من نقطة اللمس/الفأرة
-//       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-//       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-//       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+  //     onPointerDown: function (evt) {
+  //       evt.preventDefault();
+  //       // Raycast من نقطة اللمس/الفأرة
+  //       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+  //       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+  //       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
 
-//       this.mouse.set(x, y);
-//       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+  //       this.mouse.set(x, y);
+  //       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
 
-//       // تحقق تقاطع مع هذا العنصر
-//       const intersects = this.raycaster.intersectObject(this.el.object3D, true);
-//       if (intersects.length > 0) {
-//         this.dragging = true;
-//         // حساب إزاحة النقطة الملموسة من مركز العنصر
-//         this.intersectionPoint = intersects[0].point;
-//         this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
-//       }
-//     },
+  //       // تحقق تقاطع مع هذا العنصر
+  //       const intersects = this.raycaster.intersectObject(this.el.object3D, true);
+  //       if (intersects.length > 0) {
+  //         this.dragging = true;
+  //         // حساب إزاحة النقطة الملموسة من مركز العنصر
+  //         this.intersectionPoint = intersects[0].point;
+  //         this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
+  //       }
+  //     },
 
-//     onPointerMove: function (evt) {
-//       if (!this.dragging) return;
-//       evt.preventDefault();
+  //     onPointerMove: function (evt) {
+  //       if (!this.dragging) return;
+  //       evt.preventDefault();
 
-//       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-//       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-//       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+  //       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
+  //       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
+  //       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
 
-//       this.mouse.set(x, y);
-//       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
+  //       this.mouse.set(x, y);
+  //       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
 
-//       // نقطع المستوى الأرضي (XZ plane)
-//       const intersection = new AFRAME.THREE.Vector3();
-//       if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
-//         const newPos = intersection.clone().add(this.offset);
-//         // تثبيت ارتفاع Y
-//         newPos.y = this.el.object3D.position.y;
-//         this.el.object3D.position.copy(newPos);
-//       }
-//     },
+  //       // نقطع المستوى الأرضي (XZ plane)
+  //       const intersection = new AFRAME.THREE.Vector3();
+  //       if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
+  //         const newPos = intersection.clone().add(this.offset);
+  //         // تثبيت ارتفاع Y
+  //         newPos.y = this.el.object3D.position.y;
+  //         this.el.object3D.position.copy(newPos);
+  //       }
+  //     },
 
-//     onPointerUp: function (evt) {
-//       if (this.dragging) {
-//         evt.preventDefault();
-//         this.dragging = false;
-//       }
-//     },
+  //     onPointerUp: function (evt) {
+  //       if (this.dragging) {
+  //         evt.preventDefault();
+  //         this.dragging = false;
+  //       }
+  //     },
 
-//     remove: function () {
-//       this.el.removeEventListener("pointerdown", this.onPointerDown);
-//       window.removeEventListener("pointermove", this.onPointerMove);
-//       window.removeEventListener("pointerup", this.onPointerUp);
-//     },
-//   });
-// }
+  //     remove: function () {
+  //       this.el.removeEventListener("pointerdown", this.onPointerDown);
+  //       window.removeEventListener("pointermove", this.onPointerMove);
+  //       window.removeEventListener("pointerup", this.onPointerUp);
+  //     },
+  //   });
+  // }
 
 
   const handleModelClick = (evt, model) => {
@@ -725,185 +732,245 @@ const handleTouchMove = (e) => {
       }
     });
   }, [models]);
-return (
-  <ResponsiveARView
-    furnitureMenu={
-      <FurnitureMenu
-        items={data}
-        onAddItem={handleAddItem}
-        onUploadClick={handleFurnitureButtonClick}
-        furnitureFileInputRef={furnitureFileInputRef}
-        handleFurnitureUpload={handleFurnitureUpload}
-        mutate={mutate}
-        setSelectedItem={setSelectedItem}
-      />
+
+
+const handleSaveScreenshot = async () => {
+  const sceneEl = document.querySelector("a-scene");
+
+  if (!sceneEl) {
+    console.error("❌ No scene found.");
+    return;
+  }
+
+  // ننتظر canvas يجهز
+  let retries = 0;
+  while ((!sceneEl.canvas || typeof sceneEl.canvas.toDataURL !== "function") && retries < 10) {
+    await new Promise((res) => setTimeout(res, 300));
+    retries++;
+  }
+
+  const canvas = sceneEl.canvas;
+
+  if (!canvas || typeof canvas.toDataURL !== "function") {
+    console.error("❌ Canvas not ready or unsupported on this device.");
+    toast.error("تعذر التقاط صورة للمشهد.");
+    return;
+  }
+
+  const base64Image = canvas.toDataURL("image/png");
+
+  if (!base64Image?.startsWith("data:image")) {
+    console.error("❌ Invalid image data.");
+    return;
+  }
+
+  SaveProjects(
+    {
+      image: base64Image,
+      userEmail: "gehanRashed@gmail.com",
+    },
+    {
+      onSuccess: () => {
+        toast.success("Uploaded successfully", {
+          autoClose: 5000,
+        });
+        router.push("/projects");
+      },
+      onError: (err) => {
+        console.error(" Upload error:", err);
+        toast.error("فشل في رفع الصورة.");
+      },
     }
-    controlMenu={
-  showMenu && selectedModelId && menuPosition && (
-    <>
-      {/* Desktop menu: */}
-      {(!isMobile) && (
-        <div className="absolute top-4 right-4 z-10">
-          <ControlMenu
-            showDimensionPopup={showDimensionPopup}
-            position={menuPosition}
-            onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-            onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-            onDuplicate={handleDuplicateItem}
-            onDelete={() => handleRemoveItem(selectedModelId)}
-            handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-            selectedModelId={selectedModelId}
-            selectedItem={selectedItem}
-            items={data}
-            mutate={mutate}
-            setMenuPosition={setMenuPosition}
-            setQrCodeData={setQrCodeData}
-            setShowQRPopup={setShowQRPopup}
-            setShowMenu={setShowMenu}
-          />
-        </div>
-      )}
+  );
+};
 
-      {/* Mobile menu: */}
-      {isMobile && (
-        <div className="block md:hidden">
-          <MobileResponsiveControlMenu
-            showDimensionPopup={showDimensionPopup}
-            position={menuPosition}
-            onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
-            onMove={(dir) => handleMoveItem(selectedModelId, dir)}
-            onScale={(dir) => handleScaleItem(selectedModelId, dir)}
-            onDuplicate={handleDuplicateItem}
-            onDelete={() => handleRemoveItem(selectedModelId)}
-            handleShowDimensions={() => handleShowDimensions(selectedModelId)}
-            selectedModelId={selectedModelId}
-            selectedItem={selectedItem}
-            items={data}
-            mutate={mutate}
-            setMenuPosition={setMenuPosition}
-            setQrCodeData={setQrCodeData}
-            setShowQRPopup={setShowQRPopup}
-            // setShowMenu={setShowMenu}
-          />
-        </div>
-      )}
-    </>
-  )
-}
+  return (
+    <ResponsiveARView
+      furnitureMenu={
+        <FurnitureMenu
+          items={data}
+          onAddItem={handleAddItem}
+          onUploadClick={handleFurnitureButtonClick}
+          furnitureFileInputRef={furnitureFileInputRef}
+          handleFurnitureUpload={handleFurnitureUpload}
+          mutate={mutate}
+          setSelectedItem={setSelectedItem}
+        />
+      }
+      controlMenu={
+        showMenu && selectedModelId && menuPosition && (
+          <>
+            {/* Desktop menu: */}
+            {(!isMobile) && (
+              <div className="absolute top-4 right-4 z-10">
+                <ControlMenu
+                  showDimensionPopup={showDimensionPopup}
+                  position={menuPosition}
+                  onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+                  onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+                  onDuplicate={handleDuplicateItem}
+                  onDelete={() => handleRemoveItem(selectedModelId)}
+                  handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+                  selectedModelId={selectedModelId}
+                  selectedItem={selectedItem}
+                  items={data}
+                  mutate={mutate}
+                  setMenuPosition={setMenuPosition}
+                  setQrCodeData={setQrCodeData}
+                  setShowQRPopup={setShowQRPopup}
+                  setShowMenu={setShowMenu}
+                />
+              </div>
+            )}
 
-    measurementButton={
-      <button
-        onClick={() => setShowMeasurementTool(!showMeasurementTool)}
-        className={`w-10 p-2 rounded-xl border text-sm font-medium shadow transition-all duration-300 ${
-          showMeasurementTool
-            ? 'bg-mainbackground text-white border-mainbackground'
-            : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
-        }`}
-      >
-        📏 
-      </button>
-    }
-  >
-    {/* 🟡 دا المشهد الرئيسي جوا ResponsiveARView */}
-    {modelSrc ? (
-      <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
-        {/* المشهد والموديلات */}
-        <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
-        { <a-plane
-  id="floor"
-  position="0 0 0"
-  rotation="-90 0 0"
-  width="10"
-  height="10"
-  opacity="0"
-  material="transparent: true"
-  class="clickable-floor"
-></a-plane>
-}
+            {/* Mobile menu: */}
+            {isMobile && (
+              <div className="block md:hidden">
+                <MobileResponsiveControlMenu
+                  showDimensionPopup={showDimensionPopup}
+                  position={menuPosition}
+                  onRotate={(dir) => handleRotateItem(selectedModelId, dir)}
+                  onMove={(dir) => handleMoveItem(selectedModelId, dir)}
+                  onScale={(dir) => handleScaleItem(selectedModelId, dir)}
+                  onDuplicate={handleDuplicateItem}
+                  onDelete={() => handleRemoveItem(selectedModelId)}
+                  handleShowDimensions={() => handleShowDimensions(selectedModelId)}
+                  selectedModelId={selectedModelId}
+                  selectedItem={selectedItem}
+                  items={data}
+                  mutate={mutate}
+                  setMenuPosition={setMenuPosition}
+                  setQrCodeData={setQrCodeData}
+                  setShowQRPopup={setShowQRPopup}
+                // setShowMenu={setShowMenu}
+                />
+              </div>
+            )}
+          </>
+        )
+      }
 
-        {models.map((model) => (
-          <a-entity
-            drag-drop
-            key={model.id}
-            gltf-model={model.src}
-            position={model.position}
-            rotation={model.rotation}
-            scale={model.scale}
-            id={model.id}
-            className="clickable-item"
-            onClick={(evt) => handleModelClick(evt, model)}
+      measurementButton={
+        <>
+          <button
+            onClick={() => setShowMeasurementTool(!showMeasurementTool)}
+            className={`w-10 p-2 rounded-xl border text-sm font-medium shadow transition-all duration-300 ${showMeasurementTool
+              ? 'bg-mainbackground text-white border-mainbackground'
+              : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
+              }`}
+          >
+            📏
+          </button>
+          <button
+            onClick={handleSaveScreenshot}
+            className="w-10 p-2  ml-3 rounded-xl border bg-white text-gray-800 border-gray-300 hover:bg-gray-100 text-sm font-medium shadow"
+          >
+            💾
+          </button>
+        </>
+      }
+    >
+      {/* 🟡 دا المشهد الرئيسي جوا ResponsiveARView */}
+      {modelSrc ? (
+        <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
+          {/* المشهد والموديلات */}
+          <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
+          {/* اضاءه  */}
+          <a-entity light="type: ambient; color: #fff; intensity: 1"></a-entity>
+          <a-entity light="type: directional; color: #fff; intensity: 0.5" position="1 3 1"></a-entity>
+          {<a-plane
+            id="floor"
+            position="0 0 0"
+            rotation="-90 0 0"
+            width="10"
+            height="10"
+            opacity="0"
+            material="transparent: true"
+            class="clickable-floor"
+          ></a-plane>
+          }
+
+          {models.map((model) => (
+            <a-entity
+              drag-drop
+              key={model.id}
+              gltf-model={model.src}
+              position={model.position}
+              rotation={model.rotation}
+              scale={model.scale}
+              id={model.id}
+              className="clickable-item"
+              onClick={(evt) => handleModelClick(evt, model)}
             // onTouchStart={handleTouchStart}
             // onTouchMove={handleTouchMove}
             // onTouchEnd={handleTouchEnd}
-          />
-        ))}
-<Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" />
+            />
+          ))}
+          <Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" />
 
-<a-entity
-  id="rig"
-  movement-controls="enabled: true; fly: false"
-  joystick-controls="mode: joystick; joySticky: true"
-  position="0 1.6 4"
->
-  {isMobile ? (
+          <a-entity
+            id="rig"
+            movement-controls="enabled: true; fly: false"
+            joystick-controls="mode: joystick; joySticky: true"
+            position="0 1.6 4"
+          >
+            {isMobile ? (
 
-   <a-camera
-  position="0 0 0"
-  custom-touch-look-controls
-  look-controls="enabled: false"
-  wasd-controls="enabled: false"
->
-  <a-cursor
-    rayOrigin="entity"
-    raycaster="objects: .clickable-item, .clickable-floor"
-    fuse="false"
-    material="color: red"
-    position="0 0 -1.5"
-    scale="2 2 2"
-  ></a-cursor>
-</a-camera>
+              <a-camera
+                position="0 0 0"
+                custom-touch-look-controls
+                look-controls="enabled: false"
+                wasd-controls="enabled: false"
+              >
+                <a-cursor
+                  rayOrigin="entity"
+                  raycaster="objects: .clickable-item, .clickable-floor"
+                  fuse="false"
+                  material="color: red"
+                  position="0 0 -1.5"
+                  scale="2 2 2"
+                ></a-cursor>
+              </a-camera>
 
-  ) : (
-    
-    <a-camera
-  position="0 0 0"
-  scale="2 2 2"
-  look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
-  wasd-controls="enabled: true"
->
-  <a-cursor
-    rayOrigin="entity"
-    raycaster="objects: .clickable-item, .clickable-floor"
-    material="color: red"
-    fuse="false"
-    position="0 0 -1.5"
-     scale="2 2 2"
-  ></a-cursor>
-</a-camera>
+            ) : (
 
-  )}
-</a-entity>
+              <a-camera
+                position="0 0 0"
+                scale="2 2 2"
+                look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
+                wasd-controls="enabled: true"
+              >
+                <a-cursor
+                  rayOrigin="entity"
+                  raycaster="objects: .clickable-item, .clickable-floor"
+                  material="color: red"
+                  fuse="false"
+                  position="0 0 -1.5"
+                  scale="2 2 2"
+                ></a-cursor>
+              </a-camera>
+
+            )}
+          </a-entity>
 
 
-      </a-scene>
-    ) : (
-      <img src="/main2Home.jpg" alt="Main Furniture" className="w-full h-full object-cover" />
-    )}
+        </a-scene>
+      ) : (
+        <img src="/main2Home.jpg" alt="Main Furniture" className="w-full h-full object-cover" />
+      )}
 
-    {/* ✅ أداة القياس نفسها */}
-    <MeasurementTool
-      isVisible={showMeasurementTool}
-      setShowMeasurementTool={setShowMeasurementTool}
-    />
-     <DimensionsDisplay
+      {/* ✅ أداة القياس نفسها */}
+      <MeasurementTool
+        isVisible={showMeasurementTool}
+        setShowMeasurementTool={setShowMeasurementTool}
+      />
+      <DimensionsDisplay
         selectedModelId={selectedModelId}
         models={models}
         isVisible={showDimensionsDisplay}
         onClose={handleCloseDimensions}
       />
-  </ResponsiveARView>
-);
+    </ResponsiveARView>
+  );
 
 }
-
-

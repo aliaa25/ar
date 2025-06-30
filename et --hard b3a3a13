@@ -1,0 +1,35 @@
+[33m3f4c6fc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnew-version[m[33m, [m[1;31morigin/new-version[m[33m)[m update UsePostArFile
+[33m5c832c1[m Resolve Conflict
+[33m2a187df[m ar update
+[33m1d539f3[m design update
+[33me4dd2ef[m design update
+[33m6802e44[m design pages
+[33mb3a3a13[m Update :Save Test3
+[33mdcd7ed2[m Update : TestSavePage
+[33mff5bc89[m Update : Save Projects
+[33me30be78[m Build
+[33mf66f21a[m Add: Save Page
+[33mcb1406a[m resolve Build Problem
+[33m643150c[m resolve merge conflicts + update tsconfig
+[33md6827a0[m new-version
+[33mf5a8679[m[33m ([m[1;31morigin/new-feature[m[33m)[m Merge ResponsiveARView and SaveScene flow into unified AR view
+[33m7afe1e4[m blog page updated
+[33mbc3282f[m update
+[33m198af5a[m lastupdate
+[33mce33d58[m update footer
+[33m68d73f6[m AR View
+[33mcfa5c8e[m update menue position
+[33m6879eee[m deign page enhanced
+[33m932b17f[m latest updates in design
+[33m2c4cde1[m updated design
+[33m67f6862[m test
+[33m73f2218[m ar
+[33mde38a92[m test Ar
+[33m7a9410a[m Update : ArViewerClient
+[33m85e3c88[m Update
+[33m241a43c[m :wqa:wq Enter:wq Enterr
+[33m6a4fb1a[m add framer-motion in dependencies
+[33mc4cbde4[m Fix build error by wrapping useSearchParams with Suspense
+[33m3186279[m Update Routes
+[33m515f441[m last update
+[33mf128d51[m Initial commit
