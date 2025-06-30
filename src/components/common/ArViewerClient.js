@@ -105,36 +105,43 @@ export default function ArViewerClient() {
                 </div>
             )}
 
-            <main className="max-w-4xl mx-auto p-4">
-                <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+            <main className="w-full max-w-7xl mx-auto px-4 md:px-8 py-6">
+                <div className="bg-white rounded-xl shadow-xl overflow-hidden w-full">
                     {modelUrl && (
-                        <div className="relative">
-              <model-viewer
-  ref={viewerRef}
-  src={modelUrl}
-  alt={modelName}
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  ar-placement="floor"
-  camera-controls
-  touch-action="pan-y"
-  camera-orbit="0deg 90deg 2.5m"
-  camera-target="0m 0m 0m"
-  min-camera-orbit="auto auto 2.5m"
-  max-camera-orbit="auto auto 2.5m"
-  field-of-view="40deg"
-  environment-image="neutral"
-  exposure="1.2"
-  shadow-intensity="1"
-  shadow-softness="0.5"
-  loading="eager"
-  reveal="auto"
-  disable-zoom
-  disable-pan
-  style={{ width: '100%', height: '70vh', backgroundColor: '#ffffff' }}
-  onError={handleModelError}
->
+                        <div className="relative w-full">
+                            <model-viewer
+                                ref={viewerRef}
+                                src={modelUrl}
+                                alt={modelName}
+                                ar
+                                ar-modes="webxr scene-viewer quick-look"
+                                ar-placement="floor"
+                                camera-controls
+                                touch-action="pan-y"
+                                camera-orbit="0deg 90deg 2.5m"
+                                min-camera-orbit="auto auto 2.5m"
+                                max-camera-orbit="auto auto 2.5m"
+                                camera-target="0m 0m 0m"
+                                field-of-view="40deg"
+                                environment-image="neutral"
+                                exposure="1.2"
+                                shadow-intensity="1"
+                                shadow-softness="0.5"
+                                loading="eager"
+                                reveal="auto"
+                                disable-zoom
+                                disable-pan
+                               style={{
+  width: '100%',
+  height: '75vh',
+  maxHeight: '600px',
+  display: 'block',
+  margin: '0 auto',
+  backgroundColor: '#fff',
+}}
 
+                                onError={handleModelError}
+                            >
                                 <button
                                     slot="ar-button"
                                     className="absolute bottom-4 right-4 bg-purple-600 text-white px-6 py-2 rounded-full font-semibold shadow-md hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
