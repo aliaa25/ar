@@ -1,11 +1,12 @@
 "use client";
-import * as THREE from "three";
+
 import { useRef, useEffect, useState } from "react";
 import {
   Trash2, Copy, Maximize2, Minimize2, RotateCcw, RotateCw,
   QrCode, X, Menu, Ruler
 } from "lucide-react";
-import { FaTimes } from "react-icons/fa"; // لتقفيل نافذة الـ QR
+import { FaTimes } from "react-icons/fa"; 
+
 
 export default function ControlMenu({
   onRotate,
@@ -17,9 +18,9 @@ export default function ControlMenu({
   dimContainerPos,
   showDimensionPopup,
   dimensionsText,
-  setMenuPosition,
+ mutateGetArFile,
   selectedItem,
-  mutate,
+
   setShowMenu
 }) {
   const [showQRPopup, setShowQRPopup] = useState(false);
@@ -34,32 +35,114 @@ export default function ControlMenu({
 
   if (!selectedModelId) return null;
 
-  const handleARView = () => {
-    if (!selectedItem) {
-      alert(`Selected item not found.\nID: ${selectedModelId}`);
-      return;
-    }
-    setIsGeneratingQR(true);
+  // const handleARView = () => {
+  //   if (!selectedItem) {
+  //     alert(`Selected item not found.\nID: ${selectedModelId}`);
+  //     return;
+  //   }
+  //   setIsGeneratingQR(true);
 
-    mutate(selectedItem?.name, {
-      onSuccess: (data) => {
-        const baseUrl = window.location.origin;
-        const arViewerUrl = `${baseUrl}/ar-viewer?model=${encodeURIComponent(data.arFileUrl)}&name=${encodeURIComponent(selectedItem.name)}`;
+  //   mutate(selectedItem?.name, {
+  //     onSuccess: (data) => {
+  //       const baseUrl = window.location.origin;
+  //       const arViewerUrl = `${baseUrl}/ar-viewer?model=${encodeURIComponent(data.arFileUrl)}&name=${encodeURIComponent(selectedItem.name)}`;
+  //       setQRCodeData({
+  //         modelName: selectedItem.name,
+  //         qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(arViewerUrl)}&size=250x250`,
+  //         arFileUrl: data.arFileUrl,
+  //         arViewerUrl
+  //       });
+  //       setShowQRPopup(true);
+  //       setIsGeneratingQR(false);
+  //     },
+  //     onError: (error) => {
+  //       console.error("Error generating QR code:", error);
+  //       setIsGeneratingQR(false);
+  //     }
+  //   });
+  // };
+
+const handleARView = () => {
+  setIsGeneratingQR(true);
+
+  // 1. fallback only إذا مفيش selectedItem
+  const storedUpload = localStorage.getItem("uploadFile");
+
+  if (!selectedItem && storedUpload) {
+    try {
+      let arFileUrl;
+
+      if (storedUpload.startsWith("{")) {
+        const parsed = JSON.parse(storedUpload);
+        arFileUrl = parsed?.arFile;
+      } else {
+        arFileUrl = storedUpload;
+      }
+
+      if (arFileUrl) {
+        const modelName = arFileUrl.split("/").pop()?.split(".")[0] || "UploadedModel";
+        const arViewerUrl = `${window.location.origin}/ar-viewer?model=${encodeURIComponent(arFileUrl)}&name=${encodeURIComponent(modelName)}`;
+
         setQRCodeData({
-          modelName: selectedItem.name,
+          modelName,
           qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(arViewerUrl)}&size=250x250`,
-          arFileUrl: data.arFileUrl,
+          arFileUrl,
           arViewerUrl
         });
+
         setShowQRPopup(true);
         setIsGeneratingQR(false);
-      },
-      onError: (error) => {
-        console.error("Error generating QR code:", error);
+        return;
+      } else {
+        alert("No arFile found in localStorage.");
+      }
+    } catch (err) {
+      console.error("Invalid uploadFile format in localStorage:", err);
+      alert("Invalid upload file in storage.");
+    }
+
+    setIsGeneratingQR(false);
+    return;
+  }
+
+  // 2. العادي لو في selectedItem
+  if (!selectedItem) {
+    alert(`Selected item not found.\nID: ${selectedModelId}`);
+    setIsGeneratingQR(false);
+    return;
+  }
+
+  const modelName = selectedItem.name;
+  const baseUrl = window.location.origin;
+
+  const handleSuccess = (arFileUrl) => {
+    const arViewerUrl = `${baseUrl}/ar-viewer?model=${encodeURIComponent(arFileUrl)}&name=${encodeURIComponent(modelName)}`;
+    setQRCodeData({
+      modelName,
+      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(arViewerUrl)}&size=250x250`,
+      arFileUrl,
+      arViewerUrl
+    });
+    setShowQRPopup(true);
+    setIsGeneratingQR(false);
+  };
+
+  if (selectedItem.arFileUrl) {
+    handleSuccess(selectedItem.arFileUrl);
+  } else {
+    mutateGetArFile(modelName, {
+      onSuccess: (data) => handleSuccess(data.arFile),
+      onError: (err) => {
+        console.error("Error fetching AR file:", err);
+        alert("Failed to load AR file.");
         setIsGeneratingQR(false);
       }
     });
-  };
+  }
+};
+
+
+
 
   const closeQRPopup = () => {
     setShowQRPopup(false);

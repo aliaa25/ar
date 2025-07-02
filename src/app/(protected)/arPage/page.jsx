@@ -3,8 +3,11 @@
 import useGetProducts from "@/hooks/useGetProducts";
 import usePostArFile from "@/hooks/usePostArFile";
 import useRoomBound from "@/hooks/useRoomBounds";
+import useUploadModel from "@/hooks/useUploadModel";
+import useGetArFile from "@/hooks/useGetArFile";
 import FurnitureMenu from "@/components/common/FurnitureMenu"
 import ControlMenu from "@/components/common/ControlMenu";
+import ArViewControl from "@/components/common/ArViewControl";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
@@ -15,7 +18,6 @@ import { useState, useEffect, useRef } from "react";
 import usePostSaveProjects from "@/hooks/projects/usePostSaveProject";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-
 
 export default function Page() {
   useRoomBound();
@@ -33,6 +35,7 @@ export default function Page() {
   const [showDimensionPopup, setShowDimensionPopup] = useState(false);
   const { data, isLoading, error } = useGetProducts()
   const { mutate } = usePostArFile()
+  const [items, setItems] = useState([]);
   const [showMeasurementTool, setShowMeasurementTool] = useState(false);
   const draggingRef = useRef(false);
   const lastTouchRef = useRef({ x: 0, y: 0 });
@@ -45,6 +48,16 @@ export default function Page() {
   const floorThickness = 0.2;
   const ceilingThickness = 0.2;
   const { mutate: SaveProjects } = usePostSaveProjects();
+  const { mutate: uploadModel } = useUploadModel();     // دي خاصة برفع الموديل
+  const [arFileUrl, setArFileUrl] = useState(null);
+
+  const { mutate: mutateGetArFile } = useGetArFile();
+  useEffect(() => {
+  if (data) {
+    setItems(data);
+  }
+}, [data]);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -133,30 +146,6 @@ export default function Page() {
     });
   }
 
-
-  const handleTouchStart = (e) => {
-    draggingRef.current = true;
-    const touch = e.touches[0];
-    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-    e.preventDefault();
-  };
-
-  const handleTouchMove = (e) => {
-    if (!draggingRef.current) return;
-    const touch = e.touches[0];
-    const dx = touch.clientX - lastTouchRef.current.x;
-    const dy = touch.clientY - lastTouchRef.current.y;
-    lastTouchRef.current = { x: touch.clientX, y: touch.clientY };
-
-    setCursorPosition((prev) => ({
-      x: prev.x + dx * 0.01,
-      y: Math.min(Math.max(prev.y - dy * 0.01, 0.5), 3),
-      z: prev.z,
-    }));
-
-    e.preventDefault();
-  };
-
   const handleAddItem = (itemSrc) => {
     const model = {
       id: modelId.toString(),
@@ -172,6 +161,11 @@ export default function Page() {
     setShowMenu(false);
     setModelId(modelId + 1);
   };
+const handleAddToFurnitureList = (newItem) => {
+  console.log("✅ New item added", newItem); // شوفِ اسمه هنا
+  setItems((prev) => [...prev, newItem]);
+};
+
 
 
   const handleRemoveItem = (id) => {
@@ -562,83 +556,6 @@ export default function Page() {
     }
   }
 
-  // if (typeof AFRAME !== "undefined" && !AFRAME.components["drag-drop"]) {
-  //   AFRAME.registerComponent("drag-drop", {
-  //     init: function () {
-  //       this.dragging = false;
-  //       this.offset = new AFRAME.THREE.Vector3();
-  //       this.raycaster = new AFRAME.THREE.Raycaster();
-  //       this.mouse = new AFRAME.THREE.Vector2();
-  //       this.cameraEl = this.el.sceneEl.camera.el || this.el.sceneEl.querySelector("[camera]");
-  //       this.plane = new AFRAME.THREE.Plane(new AFRAME.THREE.Vector3(0, 1, 0), 0); // أرضية XZ
-
-  //       // Bind handlers
-  //       this.onPointerDown = this.onPointerDown.bind(this);
-  //       this.onPointerMove = this.onPointerMove.bind(this);
-  //       this.onPointerUp = this.onPointerUp.bind(this);
-
-  //       this.el.addEventListener("pointerdown", this.onPointerDown);
-  //       window.addEventListener("pointermove", this.onPointerMove);
-  //       window.addEventListener("pointerup", this.onPointerUp);
-  //     },
-
-  //     onPointerDown: function (evt) {
-  //       evt.preventDefault();
-  //       // Raycast من نقطة اللمس/الفأرة
-  //       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-  //       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-  //       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
-
-  //       this.mouse.set(x, y);
-  //       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
-
-  //       // تحقق تقاطع مع هذا العنصر
-  //       const intersects = this.raycaster.intersectObject(this.el.object3D, true);
-  //       if (intersects.length > 0) {
-  //         this.dragging = true;
-  //         // حساب إزاحة النقطة الملموسة من مركز العنصر
-  //         this.intersectionPoint = intersects[0].point;
-  //         this.offset.copy(this.el.object3D.position).sub(this.intersectionPoint);
-  //       }
-  //     },
-
-  //     onPointerMove: function (evt) {
-  //       if (!this.dragging) return;
-  //       evt.preventDefault();
-
-  //       const rect = this.el.sceneEl.canvas.getBoundingClientRect();
-  //       const x = (evt.clientX - rect.left) / rect.width * 2 - 1;
-  //       const y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
-
-  //       this.mouse.set(x, y);
-  //       this.raycaster.setFromCamera(this.mouse, this.el.sceneEl.camera);
-
-  //       // نقطع المستوى الأرضي (XZ plane)
-  //       const intersection = new AFRAME.THREE.Vector3();
-  //       if (this.raycaster.ray.intersectPlane(this.plane, intersection)) {
-  //         const newPos = intersection.clone().add(this.offset);
-  //         // تثبيت ارتفاع Y
-  //         newPos.y = this.el.object3D.position.y;
-  //         this.el.object3D.position.copy(newPos);
-  //       }
-  //     },
-
-  //     onPointerUp: function (evt) {
-  //       if (this.dragging) {
-  //         evt.preventDefault();
-  //         this.dragging = false;
-  //       }
-  //     },
-
-  //     remove: function () {
-  //       this.el.removeEventListener("pointerdown", this.onPointerDown);
-  //       window.removeEventListener("pointermove", this.onPointerMove);
-  //       window.removeEventListener("pointerup", this.onPointerUp);
-  //     },
-  //   });
-  // }
-
-
   const handleModelClick = (evt, model) => {
     evt.stopPropagation();
     setSelectedModelId(model.id);
@@ -664,22 +581,56 @@ export default function Page() {
     }
   };
 
-  // Handler for uploading custom furniture.
-  const handleFurnitureUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const model = {
-        id: modelId.toString(),
-        src: url,
-        position: cursorPos,
-        scale: "1 1 1",
-        rotation: "0 0 0",
-      };
-      setModels([...models, model]);
-      setModelId(modelId + 1);
-    }
+ const handleFurnitureUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    const model = {
+      id: modelId.toString(),
+      src: url,
+      position: cursorPos,
+      scale: "1 1 1",
+      rotation: "0 0 0",
+    };
+    setModels([...models, model]);
+    setModelId(modelId + 1);
+
+    uploadModel(file, {
+      onSuccess: (data) => {
+        console.log("✅ Model uploaded successfully:", data.arFileUrl);
+        toast.success("تم رفع الموديل بنجاح", { duration: 3000 });
+        setModels((prevModels) =>
+          prevModels.map((m) =>
+            m.id === model.id ? { ...m, src: data.arFileUrl } : m
+          )
+        );
+      },
+      onError: (error) => {
+        console.error("❌ Upload failed:", error);
+        toast.error("فشل في رفع الموديل");
+      },
+      onSettled: () => {
+        // مهما كانت النتيجة، نفضي قيمة input عشان يسمح بإعادة الرفع
+        event.target.value = "";
+      },
+    });
+  }
+};
+
+  const handleArViewClick = (modelIdOrName) => {
+    mutateGetArFile(modelIdOrName, {
+      onSuccess: (data) => {
+        // مثلاً في الرد data.arFileUrl
+        setArFileUrl(data.arFileUrl);
+        setShowMenu(false);  // ممكن تخفي المينيو لو حابة
+      },
+      onError: (error) => {
+        console.error("Error fetching AR file:", error);
+        toast.error("فشل تحميل ملف الواقع المعزز.");
+      }
+    });
   };
+
 
   useEffect(() => {
     const savedModelSrc = localStorage.getItem("modelSrc");
@@ -687,17 +638,7 @@ export default function Page() {
       setModelSrc(savedModelSrc);
     }
   }, []);
-  const furnitureMenu = (
-    <FurnitureMenu
-      items={data}
-      onAddItem={handleAddItem}
-      onUploadClick={handleFurnitureButtonClick}
-      furnitureFileInputRef={furnitureFileInputRef}
-      handleFurnitureUpload={handleFurnitureUpload}
-      mutate={mutate}
-      setSelectedItem={setSelectedItem}
-    />
-  );
+ 
   // Ensure that the model is positioned above the ground.
   const enforceAboveGround = (modelEl) => {
     if (!modelEl) return;
@@ -734,22 +675,22 @@ export default function Page() {
   }, [models]);
 
 
-const handleSaveScreenshot = async () => {
+  const handleSaveScreenshot = async () => {
   const sceneEl = document.querySelector("a-scene");
-
   if (!sceneEl) {
     console.error("❌ No scene found.");
     return;
   }
 
-  // ننتظر canvas يجهز
+  // حاول تأخذ الكانفاس بطرق مختلفة
+  let canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
+
   let retries = 0;
-  while ((!sceneEl.canvas || typeof sceneEl.canvas.toDataURL !== "function") && retries < 10) {
+  while ((!canvas || typeof canvas.toDataURL !== "function") && retries < 15) {
     await new Promise((res) => setTimeout(res, 300));
+    canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
     retries++;
   }
-
-  const canvas = sceneEl.canvas;
 
   if (!canvas || typeof canvas.toDataURL !== "function") {
     console.error("❌ Canvas not ready or unsupported on this device.");
@@ -757,8 +698,15 @@ const handleSaveScreenshot = async () => {
     return;
   }
 
-  const base64Image = canvas.toDataURL("image/png");
+  // تأكد إن المشهد ظاهر (اختياري)
+  if (sceneEl.hasLoaded === false) {
+    console.error("❌ Scene not fully loaded yet.");
+    toast.error("المشهد غير جاهز بعد.");
+    return;
+  }
 
+  // خذ الصورة
+  const base64Image = canvas.toDataURL("image/png");
   if (!base64Image?.startsWith("data:image")) {
     console.error("❌ Invalid image data.");
     return;
@@ -771,9 +719,7 @@ const handleSaveScreenshot = async () => {
     },
     {
       onSuccess: () => {
-        toast.success("Uploaded successfully", {
-          autoClose: 5000,
-        });
+        toast.success("Uploaded successfully", { autoClose: 5000 });
         router.push("/projects");
       },
       onError: (err) => {
@@ -783,18 +729,19 @@ const handleSaveScreenshot = async () => {
     }
   );
 };
-
   return (
     <ResponsiveARView
       furnitureMenu={
         <FurnitureMenu
-          items={data}
+          items={items}
           onAddItem={handleAddItem}
           onUploadClick={handleFurnitureButtonClick}
           furnitureFileInputRef={furnitureFileInputRef}
           handleFurnitureUpload={handleFurnitureUpload}
           mutate={mutate}
           setSelectedItem={setSelectedItem}
+          onAdd={handleAddToFurnitureList}
+       
         />
       }
       controlMenu={
@@ -819,9 +766,14 @@ const handleSaveScreenshot = async () => {
                   setQrCodeData={setQrCodeData}
                   setShowQRPopup={setShowQRPopup}
                   setShowMenu={setShowMenu}
+                  mutateGetArFile={mutateGetArFile}
                 />
               </div>
             )}
+            <ArViewControl
+              selectedModelId={selectedModelId}
+              onArViewClick={() => handleArViewClick(selectedModelId)}
+            />
 
             {/* Mobile menu: */}
             {isMobile && (
