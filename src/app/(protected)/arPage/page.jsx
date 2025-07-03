@@ -984,48 +984,6 @@ const SaveButton = () => {
   );
 };
 
-// 🔧 إضافة useEffect للتحقق من WebGL
-useEffect(() => {
-  // التحقق من دعم WebGL
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  
-  if (!gl) {
-    console.warn("⚠️ WebGL not supported - screenshots may not work");
-    toast.warning("المتصفح لا يدعم WebGL بشكل كامل");
-  }
-  
-  // التحقق من دعم toDataURL
-  try {
-    const testCanvas = document.createElement('canvas');
-    testCanvas.width = testCanvas.height = 1;
-    const ctx = testCanvas.getContext('2d');
-    ctx.fillStyle = 'red';
-    ctx.fillRect(0, 0, 1, 1);
-    testCanvas.toDataURL();
-  } catch (error) {
-    console.warn("⚠️ toDataURL not supported");
-    toast.warning("المتصفح لا يدعم حفظ الصور");
-  }
-}, []);
-
-// 🔧 إضافة تحسينات خاصة بالموبايل
-useEffect(() => {
-  if (isMobile) {
-    // تأخير قصير للتأكد من تحميل المشهد
-    const mobileTimeout = setTimeout(() => {
-      const sceneEl = document.querySelector("a-scene");
-      if (sceneEl) {
-        // إعدادات خاصة بالموبايل
-        sceneEl.setAttribute('renderer', 'antialias: true; colorManagement: true');
-        sceneEl.setAttribute('vr-mode-ui', 'enabled: false');
-      }
-    }, 1000);
-    
-    return () => clearTimeout(mobileTimeout);
-  }
-}, [isMobile]);
-  
   return (
     <ResponsiveARView
       furnitureMenu={
