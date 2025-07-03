@@ -777,22 +777,60 @@ export default function Page() {
     modelEl.object3D.position.y += floorY + groundHeight - adjustedMinY;
   };
 
-  useEffect(() => {
-    models.forEach((model) => {
-      const modelEl = document.getElementById(model.id);
-      if (modelEl && !modelEl.getAttribute("position-adjusted")) {
-        modelEl.addEventListener("model-loaded", () => {
-          enforceAboveGround(modelEl);
-          modelEl.setAttribute("position-adjusted", "true");
-        });
-        modelEl.addEventListener("scale-changed", () => {
-          enforceAboveGround(modelEl);
-        });
-      }
-    });
-  }, [models]);
+  // useEffect(() => {
+  //   models.forEach((model) => {
+  //     const modelEl = document.getElementById(model.id);
+  //     if (modelEl && !modelEl.getAttribute("position-adjusted")) {
+  //       modelEl.addEventListener("model-loaded", () => {
+  //         enforceAboveGround(modelEl);
+  //         modelEl.setAttribute("position-adjusted", "true");
+  //       });
+  //       modelEl.addEventListener("scale-changed", () => {
+  //         enforceAboveGround(modelEl);
+  //       });
+  //     }
+  //   });
+  // }, [models]);
+  // const handleSaveScreenshot = () => {
+  //   const sceneEl = document.querySelector("a-scene");
+  //   const canvas = sceneEl?.renderer?.domElement;
 
-  //   const handleSaveScreenshot = async () => {
+  //   if (!sceneEl || !sceneEl.renderer || !sceneEl.camera || !canvas) {
+  //     console.error("❌ Scene or renderer not ready.");
+  //     return;
+
+
+
+  //   }
+  //   sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
+  //   const base64Image = canvas.toDataURL("image/png");
+
+
+
+  //   if (!base64Image?.startsWith("data:image")) {
+  //     console.error("Invalid image");
+  //     return;
+  //   }
+
+  //   SaveProjects(
+  //     {
+  //       image: base64Image,
+  //       userEmail: "lzayd927@gmail.com",
+  //     },
+  //     {
+  //       onSuccess: () => {
+  //         console.log("Uploaded successfully");
+
+  //         router.push("/projects");
+
+  //       },
+  //       onError: (err) => {
+  //         console.error(" Upload error:", err);
+  //       },
+  //     }
+  //   );
+  // };
+
   //   const sceneEl = document.querySelector("a-scene");
   //   if (!sceneEl) {
   //     console.error("❌ No scene found.");
@@ -963,13 +1001,13 @@ export default function Page() {
       📏
     </button>
 
-    <button
+    {/* <button
       onClick={handleSaveScreenshot}
       className="w-10 h-10 flex items-center justify-center text-lg rounded-full bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 shadow"
       title="Save Screenshot"
     >
       💾
-    </button>
+    </button> */}
   </div>
 
 </div>
