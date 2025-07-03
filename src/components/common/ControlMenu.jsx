@@ -6,8 +6,6 @@ import {
   QrCode, X, Menu, Ruler
 } from "lucide-react";
 import { FaTimes } from "react-icons/fa"; 
-
-
 export default function ControlMenu({
   onRotate,
   onScale,

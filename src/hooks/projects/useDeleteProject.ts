@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 const deleteProject = async (projectId: string) => {
   const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/projects/delete-project/${projectId}`, {
     data: {
-      userEmail: "gehanRashed@gmail.com"
+      userEmail: "lzayd927@gmail.com"
     }
   });
   return response.data;

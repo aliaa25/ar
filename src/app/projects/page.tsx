@@ -1,5 +1,4 @@
 'use client';
-
 import useGetProjects from "@/hooks/projects/useGetProjects";
 import Image from "next/image";
 import { FaPlus, FaTrash, FaEye, FaDownload, FaHome } from "react-icons/fa";

@@ -7,7 +7,9 @@ export default function useRoomBounds() {
   useEffect(() => {
     async function computeRoomBounds() {
       const loader = new GLTFLoader();
-      loader.load("/white-room1.glb", (gltf) => {
+      const modelSrc = localStorage.getItem("modelSrc");
+      if (!modelSrc) return;
+      loader.load(modelSrc, (gltf) => {
         const model = gltf.scene;
         const box = new THREE.Box3().setFromObject(model);
         const wallThickness = 0.5;
