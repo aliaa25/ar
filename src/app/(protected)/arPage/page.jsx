@@ -791,47 +791,6 @@ export default function Page() {
       }
     });
   }, [models]);
-  const handleSaveScreenshot = () => {
-    const sceneEl = document.querySelector("a-scene");
-    const canvas = sceneEl?.renderer?.domElement;
-
-    if (!sceneEl || !sceneEl.renderer || !sceneEl.camera || !canvas) {
-      console.error("❌ Scene or renderer not ready.");
-      return;
-
-
-
-    }
-    sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
-    const base64Image = canvas.toDataURL("image/png");
-
-
-
-    if (!base64Image?.startsWith("data:image")) {
-      console.error("Invalid image");
-      return;
-    }
-
-    SaveProjects(
-      {
-        image: base64Image,
-        userEmail: "lzayd927@gmail.com",
-      },
-      {
-        onSuccess: () => {
-          console.log("Uploaded successfully");
-
-          router.push("/projects");
-
-        },
-        onError: (err) => {
-          console.error(" Upload error:", err);
-        },
-      }
-    );
-  };
-
-
 
   //   const handleSaveScreenshot = async () => {
   //   const sceneEl = document.querySelector("a-scene");
