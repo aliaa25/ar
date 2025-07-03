@@ -109,46 +109,42 @@ export default function Page() {
     }
   }, []);
   // --- Compute room boundaries ---
-  async function getRoomDimensions() {
-    return new Promise((resolve, reject) => {
-      const loader = new GLTFLoader();
-      loader.load(
-        "/white-room1.glb",
-        function (gltf) {
-          const model = gltf.scene;
-          const box = new THREE.Box3().setFromObject(model);
-          const width = box.max.x - box.min.x;
-          const depth = box.max.z - box.min.z;
-          const height = box.max.y - box.min.y;
-          const wallThickness = 0.5;
-          const floorThickness = 0.2;
-          const ceilingThickness = 0.2;
-          const internalWidth = width - 2 * wallThickness;
-          const internalDepth = depth - 2 * wallThickness;
-          resolve({
-            minX: box.min.x,
-            maxX: box.max.x,
-            minZ: box.min.z,
-            maxZ: box.max.z,
-            internalWidth,
-            internalDepth,
-            internalHeight: height - floorThickness - ceilingThickness,
-          });
-        },
-        (xhr) => {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-        (error) => {
-          console.error("An error happened:", error);
-          reject(error);
-        }
-      );
-    });
-  }
-
-
-
-
+  async function getRoomDimensions(src) {
+     return new Promise((resolve, reject) => {
+       const loader = new GLTFLoader();
+       loader.load(
+         src,
+         function (gltf) {
+           const model = gltf.scene;
+           const box = new THREE.Box3().setFromObject(model);
+           const width = box.max.x - box.min.x;
+           const depth = box.max.z - box.min.z;
+           const height = box.max.y - box.min.y;
+           const wallThickness = 0.5;
+           const floorThickness = 0.2;
+           const ceilingThickness = 0.2;
+           const internalWidth = width - 2 * wallThickness;
+           const internalDepth = depth - 2 * wallThickness;
+           resolve({
+             minX: box.min.x,
+             maxX: box.max.x,
+             minZ: box.min.z,
+             maxZ: box.max.z,
+             internalWidth,
+             internalDepth,
+             internalHeight: height - floorThickness - ceilingThickness,
+           });
+         },
+         (xhr) => {
+           console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+         },
+         (error) => {
+           console.error("An error happened:", error);
+           reject(error);
+         }
+       );
+     });
+   }
   const handleAddItem = (itemSrc) => {
     const model = {
       id: modelId.toString(),
@@ -790,7 +786,6 @@ const handleAddToFurnitureList = (newItem) => {
                   setMenuPosition={setMenuPosition}
                   setQrCodeData={setQrCodeData}
                   setShowQRPopup={setShowQRPopup}
-                   mutateGetArFile={mutateGetArFile}
                 // setShowMenu={setShowMenu}
                 />
               </div>
