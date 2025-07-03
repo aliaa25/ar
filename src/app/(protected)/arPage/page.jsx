@@ -1,6 +1,6 @@
+
 "use client";
 import useGetProducts from "@/hooks/useGetProducts";
-import * as THREE from "three";
 import usePostArFile from "@/hooks/usePostArFile";
 import useRoomBound from "@/hooks/useRoomBounds";
 import useUploadModel from "@/hooks/useUploadModel";
@@ -27,7 +27,6 @@ export default function Page() {
   const [showQRPopup, setShowQRPopup] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [modelSrc, setModelSrc] = useState(null);
-  const [useCustomRoom, setUseCustomRoom] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState(null);
   const [cursorPos, setCursorPos] = useState("0 1 0");
   const [menuPosition, setMenuPosition] = useState(null);
@@ -53,40 +52,16 @@ export default function Page() {
   const [arFileUrl, setArFileUrl] = useState(null);
 
   const { mutate: mutateGetArFile } = useGetArFile();
-  const [floorColor, setFloorColor] = useState("#ccc");
-  const [wallColor, setWallColor] = useState("#4CAF50");
-
   useEffect(() => {
-    const savedFloor = localStorage.getItem("floorColor");
-    const savedWall = localStorage.getItem("wallColor");
-    if (savedFloor) setFloorColor(savedFloor);
-    if (savedWall) setWallColor(savedWall);
-  }, []);
-  useEffect(() => {
-    if (data) {
-      setItems(data);
-    }
-  }, [data]);
-  const handleColorChange = (type, value) => {
-    if (type === "floor") {
-      setFloorColor(value);
-      localStorage.setItem("floorColor", value);
-    } else if (type === "wall") {
-      setWallColor(value);
-      localStorage.setItem("wallColor", value);
-    }
-  };
-
+  if (data) {
+    setItems(data);
+  }
+}, [data]);
 
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
-    }
-  }, []);
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('aframe').catch(console.error);
     }
   }, []);
   useEffect(() => {
@@ -134,58 +109,11 @@ export default function Page() {
     }
   }, []);
   // --- Compute room boundaries ---
-  // async function getRoomDimensions() {
-  //   return new Promise((resolve, reject) => {
-  //     const loader = new GLTFLoader();
-  //     loader.load(
-  //       modelSrc,
-  //       function (gltf) {
-  //         const model = gltf.scene;
-  //         const box = new THREE.Box3().setFromObject(model);
-  //         const width = box.max.x - box.min.x;
-  //         const depth = box.max.z - box.min.z;
-  //         const height = box.max.y - box.min.y;
-  //         const wallThickness = 0.5;
-  //         const floorThickness = 0.2;
-  //         const ceilingThickness = 0.2;
-  //         const internalWidth = width - 2 * wallThickness;
-  //         const internalDepth = depth - 2 * wallThickness;
-  //         resolve({
-  //           minX: box.min.x,
-  //           maxX: box.max.x,
-  //           minZ: box.min.z,
-  //           maxZ: box.max.z,
-  //           internalWidth,
-  //           internalDepth,
-  //           internalHeight: height - floorThickness - ceilingThickness,
-  //         });
-  //       },
-  //       (xhr) => {
-  //         console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-  //       },
-  //       (error) => {
-  //         console.error("An error happened:", error);
-  //         reject(error);
-  //       }
-  //     );
-  //   });
-  // }
-  //   const isCustomRoom = localStorage.getItem('useCustomRoom') === 'true';
-  // if (!isCustomRoom && modelSrc) {
-  //   getRoomDimensions()
-  //     .then((dimensions) => {
-  //       window.roomBounds = dimensions;
-  //       console.log("Room bounds loaded:", window.roomBounds);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Failed to get room dimensions:", error);
-  //     });
-  // }
-  async function getRoomDimensions(src) {
+  async function getRoomDimensions() {
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();
       loader.load(
-        src,
+        "/white-room1.glb",
         function (gltf) {
           const model = gltf.scene;
           const box = new THREE.Box3().setFromObject(model);
@@ -218,41 +146,8 @@ export default function Page() {
     });
   }
 
-  useEffect(() => {
-    const isCustomRoom = localStorage.getItem("useCustomRoom") === "true";
-    const savedModelSrc = localStorage.getItem("modelSrc");
-
-    if (isCustomRoom) {
-
-      window.roomBounds = {
-        minX: -6,
-        maxX: 6,
-        minZ: -3,
-        maxZ: 3,
-        internalWidth: 11,
-        internalDepth: 11,
-        internalHeight: 3.1,
-      };
 
 
-      console.log("🧱 Custom room bounds set manually:", window.roomBounds);
-      return;
-    }
-    0
-    if (savedModelSrc) {
-      setModelSrc(savedModelSrc);
-
-      // استدعاء getRoomDimensions بعد تحميل modelSrc
-      getRoomDimensions(savedModelSrc)
-        .then((dimensions) => {
-          window.roomBounds = dimensions;
-          console.log("📐 Room bounds loaded:", window.roomBounds);
-        })
-        .catch((error) => {
-          console.error("❌ Failed to get room dimensions:", error);
-        });
-    }
-  }, []);
 
   const handleAddItem = (itemSrc) => {
     const model = {
@@ -269,10 +164,10 @@ export default function Page() {
     setShowMenu(false);
     setModelId(modelId + 1);
   };
-  const handleAddToFurnitureList = (newItem) => {
-    console.log("✅ New item added", newItem); // شوفِ اسمه هنا
-    setItems((prev) => [...prev, newItem]);
-  };
+const handleAddToFurnitureList = (newItem) => {
+  console.log("✅ New item added", newItem); // شوفِ اسمه هنا
+  setItems((prev) => [...prev, newItem]);
+};
 
 
 
@@ -664,6 +559,9 @@ export default function Page() {
     }
   }
 
+
+
+
   const handleModelClick = (evt, model) => {
     evt.stopPropagation();
     setSelectedModelId(model.id);
@@ -705,8 +603,8 @@ export default function Page() {
 
       uploadModel(file, {
         onSuccess: (data) => {
-          console.log("Model uploaded successfully:", data.arFileUrl);
-          toast.success("odel uploaded successfully", { duration: 3000 });
+          console.log("✅ Model uploaded successfully:", data.arFileUrl);
+
           setModels((prevModels) =>
             prevModels.map((m) =>
               m.id === model.id ? { ...m, src: data.arFileUrl } : m
@@ -714,22 +612,16 @@ export default function Page() {
           );
         },
         onError: (error) => {
-          console.error("Upload failed:", error);
-          toast.error("Upload failed:");
-        },
-        onSettled: () => {
-          // مهما كانت النتيجة، نفضي قيمة input عشان يسمح بإعادة الرفع
-          event.target.value = "";
+          console.error("❌ Upload failed:", error);
         },
       });
     }
   };
-
   const handleArViewClick = (modelIdOrName) => {
     mutateGetArFile(modelIdOrName, {
       onSuccess: (data) => {
         // مثلاً في الرد data.arFileUrl
-        setArFileUrl(data?.arFileUrl);
+        setArFileUrl(data.arFileUrl);
         setShowMenu(false);  // ممكن تخفي المينيو لو حابة
       },
       onError: (error) => {
@@ -745,18 +637,8 @@ export default function Page() {
     if (savedModelSrc) {
       setModelSrc(savedModelSrc);
     }
-
   }, []);
-
-  useEffect(() => {
-    const modelSrc = localStorage.getItem("modelSrc");
-    const isCustom = localStorage.getItem("useCustomRoom") === "true";
-
-    setUseCustomRoom(isCustom);
-    if (modelSrc && !isCustom) {
-      setModelSrc(modelSrc);
-    }
-  }, []);
+ 
   // Ensure that the model is positioned above the ground.
   const enforceAboveGround = (modelEl) => {
     if (!modelEl) return;
@@ -777,114 +659,72 @@ export default function Page() {
     modelEl.object3D.position.y += floorY + groundHeight - adjustedMinY;
   };
 
-  // useEffect(() => {
-  //   models.forEach((model) => {
-  //     const modelEl = document.getElementById(model.id);
-  //     if (modelEl && !modelEl.getAttribute("position-adjusted")) {
-  //       modelEl.addEventListener("model-loaded", () => {
-  //         enforceAboveGround(modelEl);
-  //         modelEl.setAttribute("position-adjusted", "true");
-  //       });
-  //       modelEl.addEventListener("scale-changed", () => {
-  //         enforceAboveGround(modelEl);
-  //       });
-  //     }
-  //   });
-  // }, [models]);
-  // const handleSaveScreenshot = () => {
-  //   const sceneEl = document.querySelector("a-scene");
-  //   const canvas = sceneEl?.renderer?.domElement;
-
-  //   if (!sceneEl || !sceneEl.renderer || !sceneEl.camera || !canvas) {
-  //     console.error("❌ Scene or renderer not ready.");
-  //     return;
+  useEffect(() => {
+    models.forEach((model) => {
+      const modelEl = document.getElementById(model.id);
+      if (modelEl && !modelEl.getAttribute("position-adjusted")) {
+        modelEl.addEventListener("model-loaded", () => {
+          enforceAboveGround(modelEl);
+          modelEl.setAttribute("position-adjusted", "true");
+        });
+        modelEl.addEventListener("scale-changed", () => {
+          enforceAboveGround(modelEl);
+        });
+      }
+    });
+  }, [models]);
 
 
+  const handleSaveScreenshot = async () => {
+    const sceneEl = document.querySelector("a-scene");
 
-  //   }
-  //   sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
-  //   const base64Image = canvas.toDataURL("image/png");
+    if (!sceneEl) {
+      console.error("❌ No scene found.");
+      return;
+    }
 
+    // ننتظر canvas يجهز
+    let retries = 0;
+    while ((!sceneEl.canvas || typeof sceneEl.canvas.toDataURL !== "function") && retries < 10) {
+      await new Promise((res) => setTimeout(res, 300));
+      retries++;
+    }
 
+    const canvas = sceneEl.canvas;
 
-  //   if (!base64Image?.startsWith("data:image")) {
-  //     console.error("Invalid image");
-  //     return;
-  //   }
+    if (!canvas || typeof canvas.toDataURL !== "function") {
+      console.error("❌ Canvas not ready or unsupported on this device.");
+      toast.error("تعذر التقاط صورة للمشهد.");
+      return;
+    }
 
-  //   SaveProjects(
-  //     {
-  //       image: base64Image,
-  //       userEmail: "lzayd927@gmail.com",
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         console.log("Uploaded successfully");
+    const base64Image = canvas.toDataURL("image/png");
 
-  //         router.push("/projects");
+    if (!base64Image?.startsWith("data:image")) {
+      console.error("❌ Invalid image data.");
+      return;
+    }
 
-  //       },
-  //       onError: (err) => {
-  //         console.error(" Upload error:", err);
-  //       },
-  //     }
-  //   );
-  // };
+    SaveProjects(
+      {
+        image: base64Image,
+        userEmail: "gehanRashed@gmail.com",
+      },
+      {
+        onSuccess: () => {
+          toast.success("Uploaded successfully", {
+            autoClose: 5000,
+          });
+          router.push("/projects");
+        },
+        onError: (err) => {
+          console.error(" Upload error:", err);
+          toast.error("فشل في رفع الصورة.");
+        },
+      }
+    );
+  };
 
-  //   const sceneEl = document.querySelector("a-scene");
-  //   if (!sceneEl) {
-  //     console.error("❌ No scene found.");
-  //     return;
-  //   }
-
-  //   // حاول تأخذ الكانفاس بطرق مختلفة
-  //   let canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
-
-  //   let retries = 0;
-  //   while ((!canvas || typeof canvas.toDataURL !== "function") && retries < 15) {
-  //     await new Promise((res) => setTimeout(res, 300));
-  //     canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
-  //     retries++;
-  //   }
-
-  //     if (!canvas || typeof canvas.toDataURL !== "function") {
-  //       console.error("❌ Canvas not ready or unsupported on this device.");
-  //       toast.error("تعذر التقاط صورة للمشهد.");
-  //       return;
-  //     }
-
-  //   // تأكد إن المشهد ظاهر (اختياري)
-  //   if (sceneEl.hasLoaded === false) {
-  //     console.error("❌ Scene not fully loaded yet.");
-  //     toast.error("المشهد غير جاهز بعد.");
-  //     return;
-  //   }
-
-  //   // خذ الصورة
-  //   const base64Image = canvas.toDataURL("image/png");
-  //   if (!base64Image?.startsWith("data:image")) {
-  //     console.error("❌ Invalid image data.");
-  //     return;
-  //   }
-
-  // SaveProjects(
-  //       {
-  //         image: base64Image,
-  //         userEmail: "gehanRashed@gmail.com",
-  //       },
-  //       {
-  //         onSuccess: () => {
-  //           console.log("Uploaded successfully");
-
-  //           router.push("/projects");
-
-  //         },
-  //         onError: (err) => {
-  //           console.error(" Upload error:", err);
-  //         },
-  //       }
-  //     );
-  //   };
   return (
     <ResponsiveARView
       furnitureMenu={
@@ -897,7 +737,7 @@ export default function Page() {
           mutate={mutate}
           setSelectedItem={setSelectedItem}
           onAdd={handleAddToFurnitureList}
-
+       
         />
       }
       controlMenu={
@@ -950,7 +790,7 @@ export default function Page() {
                   setMenuPosition={setMenuPosition}
                   setQrCodeData={setQrCodeData}
                   setShowQRPopup={setShowQRPopup}
-                  mutateGetArFile={mutateGetArFile}
+                   mutateGetArFile={mutateGetArFile}
                 // setShowMenu={setShowMenu}
                 />
               </div>
@@ -961,69 +801,33 @@ export default function Page() {
 
       measurementButton={
         <>
-         <div className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-white rounded-2xl shadow-lg p-4 w-fit mb-6">
-
-  {/* ✅ Color Pickers فقط لو في Custom Room */}
-  {useCustomRoom && (
-    <div className="flex flex-col sm:flex-row gap-4">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-gray-700">Floor:</span>
-        <input
-          type="color"
-          value={floorColor}
-          onChange={(e) => handleColorChange("floor", e.target.value)}
-          className="w-10 h-10 rounded-md border border-gray-300 shadow-sm cursor-pointer"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-semibold text-gray-700">Wall:</span>
-        <input
-          type="color"
-          value={wallColor}
-          onChange={(e) => handleColorChange("wall", e.target.value)}
-          className="w-10 h-10 rounded-md border border-gray-300 shadow-sm cursor-pointer"
-        />
-      </div>
-    </div>
-  )}
-
-  {/* 🛠️ Action Buttons */}
-  <div className="flex items-center gap-3 mt-3 md:mt-0">
-    <button
-      onClick={() => setShowMeasurementTool(!showMeasurementTool)}
-      className={`w-10 h-10 flex items-center justify-center text-lg rounded-full transition-colors duration-300 border shadow 
-        ${showMeasurementTool
-          ? 'bg-mainbackground text-white border-mainbackground'
-          : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
-        }`}
-      title="Toggle Measurement Tool"
-    >
-      📏
-    </button>
-
-    {/* <button
-      onClick={handleSaveScreenshot}
-      className="w-10 h-10 flex items-center justify-center text-lg rounded-full bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 shadow"
-      title="Save Screenshot"
-    >
-      💾
-    </button> */}
-  </div>
-
-</div>
-
+          <button
+            onClick={() => setShowMeasurementTool(!showMeasurementTool)}
+            className={`w-10 p-2 rounded-xl border text-sm font-medium shadow transition-all duration-300 ${showMeasurementTool
+              ? 'bg-mainbackground text-white border-mainbackground'
+              : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
+              }`}
+          >
+            📏
+          </button>
+          <button
+            onClick={handleSaveScreenshot}
+            className="w-10 p-2  ml-3 rounded-xl border bg-white text-gray-800 border-gray-300 hover:bg-gray-100 text-sm font-medium shadow"
+          >
+            💾
+          </button>
         </>
       }
     >
       {/* 🟡 دا المشهد الرئيسي جوا ResponsiveARView */}
-      {/* {modelSrc ? (
+      {modelSrc ? (
         <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
           {/* المشهد والموديلات */}
-      {/* <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body /> */}
-      {/* اضاءه  */}
-      {/* <a-entity light="type: ambient; color: #fff; intensity: 1"></a-entity>
-          <a-entity light="type: directional; color: #fff; intensity: 0.5" position="1 3 1"></a-entity> */}
-      {/* {<a-plane
+          <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
+          {/* اضاءه  */}
+          <a-entity light="type: ambient; color: #fff; intensity: 1"></a-entity>
+          <a-entity light="type: directional; color: #fff; intensity: 0.5" position="1 3 1"></a-entity>
+          {<a-plane
             id="floor"
             position="0 0 0"
             rotation="-90 0 0"
@@ -1032,10 +836,10 @@ export default function Page() {
             opacity="0"
             material="transparent: true"
             class="clickable-floor"
-          ></a-plane> */}
+          ></a-plane>
+          }
 
-
-      {/* {models.map((model) => (
+          {models.map((model) => (
             <a-entity
               drag-drop
               key={model.id}
@@ -1050,171 +854,9 @@ export default function Page() {
             // onTouchMove={handleTouchMove}
             // onTouchEnd={handleTouchEnd}
             />
-          ))} */}
-      {/* <Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" /> */}
-
-      {/* <a-entity
-            id="rig"
-            movement-controls="enabled: true; fly: false"
-            joystick-controls="mode: joystick; joySticky: true"
-            position="0 1.6 4"
-          >
-            {isMobile ? (
-
-              <a-camera
-                position="0 0 0"
-                custom-touch-look-controls
-                look-controls="enabled: false"
-                wasd-controls="enabled: false"
-              >
-                <a-cursor
-                  rayOrigin="entity"
-                  raycaster="objects: .clickable-item, .clickable-floor"
-                  fuse="false"
-                  material="color: red"
-                  position="0 0 -1.5"
-                  scale="2 2 2"
-                ></a-cursor>
-              </a-camera>
-
-            ) : (
-
-              <a-camera
-                position="0 0 0"
-                scale="2 2 2"
-                look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true; sensitivity: 0.1"
-                wasd-controls="enabled: true"
-              >
-                <a-cursor
-                  rayOrigin="entity"
-                  raycaster="objects: .clickable-item, .clickable-floor"
-                  material="color: red"
-                  fuse="false"
-                  position="0 0 -1.5"
-                  scale="2 2 2"
-                ></a-cursor>
-              </a-camera>
-
-            )}
-          </a-entity> */}
-
-
-      {/* </a-scene> */}
-      {/* ) : (
-        <img src="/main2Home.jpg" alt="Main Furniture" className="w-full h-full object-cover" />
-      )} */}
-      {useCustomRoom ? (
-        <a-scene embedded physics="debug: false" className="w-full h-full rounded-lg shadow-lg">
-          {/* 🟡 إضاءة ناعمة وواقعية */}
-          <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
-          <a-entity
-            light="type: directional; color: #ffffff; intensity: 0.6"
-            position="6 10 6"
-            shadow="cast: true"
-          ></a-entity>
-
-          {/* 🟩 أرضية كبيرة واقعية */}
-          <a-plane
-            id="floor"
-            position="0 0 0"
-            rotation="-90 0 0"
-            width="12"
-            height="12"
-            color={floorColor || "#d2b48c"}
-            material="roughness: 1; metalness: 0"
-            class="clickable-floor"
-          ></a-plane>
-
-          {/* 🧱 جدران 12×12 × 3.2 ارتفاع */}
-          <a-box position="-6 1.6 0" depth="12" height="3.2" width="0.1" color={wallColor || "#eeeeee"}></a-box>
-          <a-box position="6 1.6 0" depth="12" height="3.2" width="0.1" color={wallColor || "#eeeeee"}></a-box>
-          <a-box position="0 1.6 -6" width="12" height="3.2" depth="0.1" color={wallColor || "#eeeeee"}></a-box>
-          <a-box position="0 1.6 6" width="12" height="3.2" depth="0.1" color={wallColor || "#eeeeee"}></a-box>
-
-          {/* 🌫️ سقف */}
-          <a-box position="0 3.2 0" width="12" depth="12" height="0.1" color="#f5f5f5"></a-box>
-
-          {/* 🪑 الموديلات */}
-          {models.map((model) => (
-            <a-entity
-              drag-drop
-              key={model.id}
-              gltf-model={model.src}
-              position={model.position}
-              rotation={model.rotation}
-              scale={model.scale}
-              id={model.id}
-              className="clickable-item"
-              onClick={(evt) => handleModelClick(evt, model)}
-            />
           ))}
-
-          {/* 🎮 الكاميرا */}
-          <a-entity
-            id="rig"
-            movement-controls="enabled: true; fly: false; speed: 0.2"
-            joystick-controls="mode: joystick; joySticky: true"
-            position="0 1.6 5"
-          >
-            <a-camera
-              position="0 0 0"
-              look-controls="touchEnabled: true; reverseTouchDrag: false; enabled: true"
-              wasd-controls="enabled: true; acceleration: 120"
-            >
-              <a-cursor
-                rayOrigin="entity"
-                raycaster="objects: .clickable-item, .clickable-floor"
-                fuse="false"
-                material="color: red"
-                position="0 0 -1.5"
-                scale="2 2 2"
-              ></a-cursor>
-            </a-camera>
-          </a-entity>
-        </a-scene>
-
-
-
-
-      ) : modelSrc ? (
-        //  Model Room
-        <a-scene embedded physics className="w-full h-full rounded-lg shadow-lg">
-          <a-entity gltf-model={modelSrc} position="0 0 0" scale="1 1 1" static-body />
-
-          {/* الإضاءة */}
-          <a-entity light="type: ambient; color: #fff; intensity: 1"></a-entity>
-          <a-entity light="type: directional; color: #fff; intensity: 0.5" position="1 3 1"></a-entity>
-
-          {/* الأرضية الشفافة للتفاعل */}
-          <a-plane
-            id="floor"
-            position="0 0 0"
-            rotation="-90 0 0"
-            width="10"
-            height="10"
-            opacity="0"
-            material="transparent: true"
-            class="clickable-floor"
-          ></a-plane>
-
-          {/* الموديلات القابلة للتحريك */}
-          {models.map((model) => (
-            <a-entity
-              drag-drop
-              key={model.id}
-              gltf-model={model.src}
-              position={model.position}
-              rotation={model.rotation}
-              scale={model.scale}
-              id={model.id}
-              className="clickable-item"
-              onClick={(evt) => handleModelClick(evt, model)}
-            />
-          ))}
-
           <Script src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js" />
 
-          {/* الكاميرا والتحكم */}
           <a-entity
             id="rig"
             movement-controls="enabled: true; fly: false"
@@ -1222,6 +864,7 @@ export default function Page() {
             position="0 1.6 4"
           >
             {isMobile ? (
+
               <a-camera
                 position="0 0 0"
                 custom-touch-look-controls
@@ -1237,7 +880,9 @@ export default function Page() {
                   scale="2 2 2"
                 ></a-cursor>
               </a-camera>
+
             ) : (
+
               <a-camera
                 position="0 0 0"
                 scale="2 2 2"
@@ -1253,15 +898,15 @@ export default function Page() {
                   scale="2 2 2"
                 ></a-cursor>
               </a-camera>
+
             )}
           </a-entity>
-        </a-scene>
 
+
+        </a-scene>
       ) : (
-        //  صورة ثابتة
         <img src="/main2Home.jpg" alt="Main Furniture" className="w-full h-full object-cover" />
       )}
-
 
       {/* ✅ أداة القياس نفسها */}
       <MeasurementTool
