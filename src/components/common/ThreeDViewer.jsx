@@ -91,7 +91,7 @@ const StartDesign = () => {
         className="md:w-1/2 h-screen relative overflow-hidden"
       >
         <img
-          src="/5.png"
+          src="/4.jpg"
           alt="Room"
           className="w-full h-full object-cover object-center scale-100 transition-transform duration-[6000ms] ease-in-out hover:scale-105"
         />
