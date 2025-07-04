@@ -7,7 +7,6 @@ import useUploadModel from "@/hooks/useUploadModel";
 import useGetArFile from "@/hooks/useGetArFile";
 import FurnitureMenu from "@/components/common/FurnitureMenu"
 import ControlMenu from "@/components/common/ControlMenu";
-import ArViewControl from "@/components/common/ArViewControl";
 import MeasurementTool from "@/components/common/MeasurementTool";
 import MobileResponsiveControlMenu from '@/components/common/MobileResponsiveControlMenu';
 import ResponsiveARView from '@/components/common/ResponsiveARView';
@@ -1027,6 +1026,18 @@ useEffect(() => {
 }, [isMobile]);
   
   return (
+    <>
+    {/* ✅ تحميل مكتبة A-Frame أولاً */}
+      <Script
+        src="https://unpkg.com/aframe@1.4.2/dist/aframe.min.js"
+        strategy="beforeInteractive"
+      />
+
+      {/* ✅ بعد aframe نحمل joystick-controls */}
+      <Script
+        src="https://unpkg.com/aframe-joystick-controls@4.0.1/dist/aframe-joystick-controls.min.js"
+        strategy="afterInteractive"
+      />
     <ResponsiveARView
       furnitureMenu={
         <FurnitureMenu
@@ -1067,11 +1078,6 @@ useEffect(() => {
                 />
               </div>
             )}
-            <ArViewControl
-              selectedModelId={selectedModelId}
-              onArViewClick={() => handleArViewClick(selectedModelId)}
-            />
-
             {/* Mobile menu: */}
             {isMobile && (
               <div className="block md:hidden">
@@ -1328,6 +1334,7 @@ useEffect(() => {
         onClose={handleCloseDimensions}
       />
     </ResponsiveARView>
+     </>
   );
 
 }
