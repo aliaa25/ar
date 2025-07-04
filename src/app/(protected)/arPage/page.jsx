@@ -745,101 +745,47 @@ export default function Page() {
       }
     });
   }, [models]);
-  // const handleSaveScreenshot = () => {
-  //   const sceneEl = document.querySelector("a-scene");
-  //   const canvas = sceneEl?.renderer?.domElement;
+// ✅ دالة اللاب الأصلية
+const handleDesktopScreenshot = () => {
+  const sceneEl = document.querySelector("a-scene");
+  const canvas = sceneEl?.renderer?.domElement;
 
-  //   if (!sceneEl || !sceneEl.renderer || !sceneEl.camera || !canvas) {
-  //     console.error("❌ Scene or renderer not ready.");
-  //     return;
+  if (!sceneEl || !sceneEl.renderer || !sceneEl.camera || !canvas) {
+    console.error("❌ Scene or renderer not ready.");
+    toast.error("المشهد غير جاهز");
+    return;
+  }
 
+  sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
+  const base64Image = canvas.toDataURL("image/png");
 
+  if (!base64Image?.startsWith("data:image")) {
+    console.error("Invalid image");
+    toast.error("الصورة غير صالحة");
+    return;
+  }
 
-  //   }
-  //   sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
-  //   const base64Image = canvas.toDataURL("image/png");
+  SaveProjects(
+    {
+      image: base64Image,
+      userEmail: "lzayd927@gmail.com",
+    },
+    {
+      onSuccess: () => {
+        console.log("✅ Uploaded successfully");
+        toast.success("تم حفظ الصورة");
+        router.push("/projects");
+      },
+      onError: (err) => {
+        console.error("❌ Upload error:", err);
+        toast.error("فشل في رفع الصورة");
+      },
+    }
+  );
+};
 
-
-
-  //   if (!base64Image?.startsWith("data:image")) {
-  //     console.error("Invalid image");
-  //     return;
-  //   }
-
-  //   SaveProjects(
-  //     {
-  //       image: base64Image,
-  //       userEmail: "lzayd927@gmail.com",
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         console.log("Uploaded successfully");
-
-  //         router.push("/projects");
-
-  //       },
-  //       onError: (err) => {
-  //         console.error(" Upload error:", err);
-  //       },
-  //     }
-  //   );
-  // };
-  //   const sceneEl = document.querySelector("a-scene");
-  //   if (!sceneEl) {
-  //     console.error("❌ No scene found.");
-  //     return;
-  //   }
-
-  //   // حاول تأخذ الكانفاس بطرق مختلفة
-  //   let canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
-
-  //   let retries = 0;
-  //   while ((!canvas || typeof canvas.toDataURL !== "function") && retries < 15) {
-  //     await new Promise((res) => setTimeout(res, 300));
-  //     canvas = sceneEl.canvas || document.querySelector("canvas.a-canvas") || (sceneEl.renderer && sceneEl.renderer.domElement);
-  //     retries++;
-  //   }
-
-  //     if (!canvas || typeof canvas.toDataURL !== "function") {
-  //       console.error("❌ Canvas not ready or unsupported on this device.");
-  //       toast.error("تعذر التقاط صورة للمشهد.");
-  //       return;
-  //     }
-
-  //   // تأكد إن المشهد ظاهر (اختياري)
-  //   if (sceneEl.hasLoaded === false) {
-  //     console.error("❌ Scene not fully loaded yet.");
-  //     toast.error("المشهد غير جاهز بعد.");
-  //     return;
-  //   }
-
-  //   // خذ الصورة
-  //   const base64Image = canvas.toDataURL("image/png");
-  //   if (!base64Image?.startsWith("data:image")) {
-  //     console.error("❌ Invalid image data.");
-  //     return;
-  //   }
-
-  // SaveProjects(
-  //       {
-  //         image: base64Image,
-  //         userEmail: "gehanRashed@gmail.com",
-  //       },
-  //       {
-  //         onSuccess: () => {
-  //           console.log("Uploaded successfully");
-
-  //           router.push("/projects");
-
-  //         },
-  //         onError: (err) => {
-  //           console.error(" Upload error:", err);
-  //         },
-  //       }
-  //     );
-  //   };
-  // 🔧 الدالة المحسنة لحفظ الصور - تدعم الموبايل والكمبيوتر
-const handleSaveScreenshot = async () => {
+// ✅ دالة الموبايل الطويلة اللي عندك (حافظنا على اسمها)
+const handleMobileScreenshot = async () => {
   try {
     const sceneEl = document.querySelector("a-scene");
     if (!sceneEl) {
@@ -848,75 +794,55 @@ const handleSaveScreenshot = async () => {
       return;
     }
 
-    // انتظار تحميل المشهد
     if (!sceneEl.hasLoaded) {
-      console.log("⏳ Waiting for scene to load...");
       await new Promise((resolve) => {
-        sceneEl.addEventListener('loaded', resolve, { once: true });
+        sceneEl.addEventListener("loaded", resolve, { once: true });
       });
     }
 
-    // محاولة الحصول على الكانفاس بطرق مختلفة
     let canvas = null;
     let retryCount = 0;
     const maxRetries = 10;
 
     while (!canvas && retryCount < maxRetries) {
-      // طرق مختلفة للحصول على الكانفاس
-      canvas = sceneEl.canvas || 
-               sceneEl.renderer?.domElement || 
+      canvas = sceneEl.canvas ||
+               sceneEl.renderer?.domElement ||
                document.querySelector("canvas.a-canvas") ||
                document.querySelector("canvas[data-aframe-canvas]") ||
                document.querySelector("canvas");
 
       if (!canvas) {
-        console.log(`🔄 Retry ${retryCount + 1}/${maxRetries} - Canvas not found`);
         await new Promise(resolve => setTimeout(resolve, 200));
         retryCount++;
       }
     }
 
-    if (!canvas) {
-      console.error("❌ Canvas not found after retries");
-      toast.error("تعذر العثور على لوحة الرسم");
+    if (!canvas || typeof canvas.toDataURL !== "function") {
+      toast.error("تعذر الحصول على الصورة");
       return;
     }
 
-    // التحقق من إمكانية استخدام toDataURL
-    if (typeof canvas.toDataURL !== "function") {
-      console.error("❌ Canvas does not support toDataURL");
-      toast.error("المتصفح لا يدعم حفظ الصور");
-      return;
-    }
-
-    // للموبايل: إجبار إعادة الرسم
     if (isMobile && sceneEl.renderer) {
       sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
     }
 
-    // محاولة الحصول على الصورة
     let base64Image;
     try {
       base64Image = canvas.toDataURL("image/png", 1.0);
-    } catch (error) {
-      // إذا فشل PNG، جرب JPEG
+    } catch {
       try {
         base64Image = canvas.toDataURL("image/jpeg", 0.9);
       } catch (jpegError) {
-        console.error("❌ Failed to capture image:", jpegError);
         toast.error("فشل في التقاط الصورة");
         return;
       }
     }
 
-    // التحقق من صحة البيانات
     if (!base64Image || !base64Image.startsWith("data:image")) {
-      console.error("❌ Invalid image data");
       toast.error("بيانات الصورة غير صالحة");
       return;
     }
 
-    // رفع الصورة
     SaveProjects(
       {
         image: base64Image,
@@ -924,116 +850,29 @@ const handleSaveScreenshot = async () => {
       },
       {
         onSuccess: () => {
-          console.log("✅ Screenshot saved successfully");
           toast.success("تم حفظ الصورة بنجاح");
           router.push("/projects");
         },
         onError: (err) => {
-          console.error("❌ Upload error:", err);
           toast.error("فشل في رفع الصورة");
         },
       }
     );
 
   } catch (error) {
-    console.error("❌ Unexpected error:", error);
     toast.error("حدث خطأ غير متوقع");
   }
 };
 
-// 🔧 إضافة دالة للتحقق من جاهزية الكانفاس
-const checkCanvasReady = () => {
-  const sceneEl = document.querySelector("a-scene");
-  if (!sceneEl) return false;
-  
-  const canvas = sceneEl.canvas || 
-                sceneEl.renderer?.domElement || 
-                document.querySelector("canvas.a-canvas");
-  
-  return canvas && typeof canvas.toDataURL === "function";
-};
-
-// 🔧 إضافة دالة لإجبار إعادة الرسم (للموبايل)
-const forceRender = () => {
-  const sceneEl = document.querySelector("a-scene");
-  if (sceneEl && sceneEl.renderer && sceneEl.camera) {
-    sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
-  }
-};
-
-// 🔧 تحسين زر الحفظ
-const SaveButton = () => {
-  const [isReady, setIsReady] = useState(false);
-  
-  useEffect(() => {
-    const checkReady = () => {
-      setIsReady(checkCanvasReady());
-    };
-    
-    // فحص دوري للتأكد من جاهزية الكانفاس
-    const interval = setInterval(checkReady, 1000);
-    checkReady(); // فحص فوري
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <button
-      onClick={handleSaveScreenshot}
-      disabled={!isReady}
-      className={`w-10 h-10 flex items-center justify-center text-lg rounded-full shadow transition-all duration-300 ${
-        isReady 
-          ? 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 cursor-pointer'
-          : 'bg-gray-300 text-gray-500 border border-gray-400 cursor-not-allowed'
-      }`}
-      title={isReady ? "Save Screenshot" : "Please wait..."}
-    >
-      💾
-    </button>
-  );
-};
-
-// 🔧 إضافة useEffect للتحقق من WebGL
-useEffect(() => {
-  // التحقق من دعم WebGL
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  
-  if (!gl) {
-    console.warn("⚠️ WebGL not supported - screenshots may not work");
-    toast.warning("المتصفح لا يدعم WebGL بشكل كامل");
-  }
-  
-  // التحقق من دعم toDataURL
-  try {
-    const testCanvas = document.createElement('canvas');
-    testCanvas.width = testCanvas.height = 1;
-    const ctx = testCanvas.getContext('2d');
-    ctx.fillStyle = 'red';
-    ctx.fillRect(0, 0, 1, 1);
-    testCanvas.toDataURL();
-  } catch (error) {
-    console.warn("⚠️ toDataURL not supported");
-    toast.warning("المتصفح لا يدعم حفظ الصور");
-  }
-}, []);
-
-// 🔧 إضافة تحسينات خاصة بالموبايل
-useEffect(() => {
+// ✅ دالة موحدة تستدعي الصح حسب الجهاز
+const handleSaveScreenshot = () => {
   if (isMobile) {
-    // تأخير قصير للتأكد من تحميل المشهد
-    const mobileTimeout = setTimeout(() => {
-      const sceneEl = document.querySelector("a-scene");
-      if (sceneEl) {
-        // إعدادات خاصة بالموبايل
-        sceneEl.setAttribute('renderer', 'antialias: true; colorManagement: true');
-        sceneEl.setAttribute('vr-mode-ui', 'enabled: false');
-      }
-    }, 1000);
-    
-    return () => clearTimeout(mobileTimeout);
+    handleMobileScreenshot();
+  } else {
+    handleDesktopScreenshot();
   }
-}, [isMobile]);
+};
+
   
   return (
     <>
