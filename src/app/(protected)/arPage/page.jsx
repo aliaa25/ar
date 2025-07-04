@@ -77,11 +77,6 @@ export default function Page() {
     }
   }, []);
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      import('aframe').catch(console.error);
-    }
-  }, []);
-  useEffect(() => {
     if (typeof window !== 'undefined' && window.AFRAME &&
       !AFRAME.components['custom-touch-look-controls']) {
       AFRAME.registerComponent('custom-touch-look-controls', {
