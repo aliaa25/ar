@@ -64,6 +64,11 @@ export default function Page() {
       setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
     }
   }, []);
+    useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('aframe').catch(console.error);
+    }
+  }, []);
   useEffect(() => {
     if (typeof window !== 'undefined' && window.AFRAME &&
       !AFRAME.components['custom-touch-look-controls']) {
