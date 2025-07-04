@@ -51,6 +51,20 @@ export default function Page() {
   const { mutate: mutateGetArFile } = useGetArFile();
   const [floorColor, setFloorColor] = useState("#ccc");
   const [wallColor, setWallColor] = useState("#4CAF50");
+
+  const [isAframeReady, setIsAframeReady] = useState(false);
+
+  useEffect(() => {
+    const checkAframe = () => {
+      if (typeof window !== 'undefined' && window.AFRAME) {
+        setIsAframeReady(true);
+      } else {
+        setTimeout(checkAframe, 100); // نحاول تاني بعد 100ms
+      }
+    };
+
+    checkAframe();
+  }, []);
   useEffect(() => {
     const savedFloor = localStorage.getItem("floorColor");
     const savedWall = localStorage.getItem("wallColor");
@@ -76,6 +90,7 @@ export default function Page() {
       setIsMobile(/Mobi|Android/i.test(navigator.userAgent));
     }
   }, []);
+
   useEffect(() => {
     if (typeof window !== 'undefined' && window.AFRAME &&
       !AFRAME.components['custom-touch-look-controls']) {
